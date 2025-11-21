@@ -12,6 +12,12 @@ class WireframeRenderer {
         this.guidelines = []; // 가이드라인 배열
         this.snapThreshold = 8; // 스냅 임계값 (픽셀)
         this.gridSize = 10; // 그리드 크기
+        this.zIndexCounter = 1; // z-index 카운터
+
+        // 컨테이너 타입 정의 (내부에 다른 요소를 담을 수 있는 컴포넌트)
+        this.containerTypes = ['container', 'card', 'sidebar', 'modal', 'dialog',
+                               'popup', 'drawer', 'header', 'footer'];
+
         this.setupCanvasDragDrop();
     }
 
@@ -35,15 +41,27 @@ class WireframeRenderer {
             if (!wrapper) return;
 
             const rect = wrapper.getBoundingClientRect();
-            const x = Math.round(e.clientX - rect.left);
-            const y = Math.round(e.clientY - rect.top);
+            let x = Math.round(e.clientX - rect.left);
+            let y = Math.round(e.clientY - rect.top);
+
+            // 드롭 위치에 있는 컨테이너 찾기
+            const targetContainer = this.findContainerAtPoint(e.clientX, e.clientY);
 
             // 컴포넌트 갤러리에서 드래그한 경우
             const componentData = e.dataTransfer.getData('component');
             if (componentData) {
                 try {
                     const component = JSON.parse(componentData);
-                    this.addNewComponent(component, x, y);
+
+                    // 컨테이너 내부로 드롭된 경우 상대 좌표로 변환
+                    if (targetContainer) {
+                        const containerRect = targetContainer.getBoundingClientRect();
+                        x = Math.round(e.clientX - containerRect.left);
+                        y = Math.round(e.clientY - containerRect.top);
+                        this.addNewComponent(component, x, y, targetContainer);
+                    } else {
+                        this.addNewComponent(component, x, y);
+                    }
                 } catch (err) {
                     console.error('Failed to add component:', err);
                 }
@@ -73,6 +91,41 @@ class WireframeRenderer {
         this.highlightContainer(e.clientX, e.clientY);
     }
 
+    // 드롭 위치의 컨테이너 찾기
+    findContainerAtPoint(clientX, clientY) {
+        // 드래그 중인 요소 임시로 숨기기
+        let hiddenElement = null;
+        if (this.draggedElement && this.draggedElement.domElement) {
+            hiddenElement = this.draggedElement.domElement;
+            hiddenElement.style.pointerEvents = 'none';
+        }
+
+        // elementFromPoint로 해당 위치의 요소 찾기
+        const element = document.elementFromPoint(clientX, clientY);
+
+        // 드래그 중인 요소 다시 보이기
+        if (hiddenElement) {
+            hiddenElement.style.pointerEvents = '';
+        }
+
+        if (!element) return null;
+
+        // 요소가 컨테이너인지 확인
+        const containerClasses = this.containerTypes.map(type => `wf-${type}`);
+        for (const cls of containerClasses) {
+            if (element.classList.contains(cls)) {
+                return element;
+            }
+            // 부모 요소 중에 컨테이너가 있는지 확인
+            const parent = element.closest('.' + containerClasses.join(', .'));
+            if (parent && parent !== this.canvas.querySelector('.wireframe-wrapper')) {
+                return parent;
+            }
+        }
+
+        return null;
+    }
+
     // 컨테이너 하이라이트
     highlightContainer(clientX, clientY) {
         // 기존 하이라이트 제거
@@ -80,7 +133,8 @@ class WireframeRenderer {
         prevHighlighted.forEach(el => el.classList.remove('container-highlight'));
 
         // 컨테이너 타입 정의
-        const containerTypes = ['wf-container', 'wf-card', 'wf-sidebar', 'wf-modal', 'wf-header', 'wf-footer'];
+        const containerTypes = ['wf-container', 'wf-card', 'wf-sidebar', 'wf-modal', 'wf-header', 'wf-footer',
+                                'wf-dialog', 'wf-popup', 'wf-drawer'];
 
         // 드래그 중인 요소를 제외한 컨테이너 찾기
         const containers = Array.from(this.canvas.querySelectorAll(
@@ -208,13 +262,15 @@ class WireframeRenderer {
     }
 
     // 새 컴포넌트 추가
-    addNewComponent(component, x, y) {
+    addNewComponent(component, x, y, targetContainer = null) {
         if (!this.currentData) return;
 
-        // 스냅 적용
-        const snapped = this.applySnap(x, y, -1);
-        x = snapped.x;
-        y = snapped.y;
+        // 스냅 적용 (컨테이너 내부가 아닐 때만)
+        if (!targetContainer) {
+            const snapped = this.applySnap(x, y, -1);
+            x = snapped.x;
+            y = snapped.y;
+        }
 
         // 예제 코드를 파싱하여 속성 추출
         const lines = component.example.split('\n');
@@ -250,9 +306,15 @@ class WireframeRenderer {
 
         const newCode = newLines.join('\n');
 
+        // 컨테이너 정보 추가 (나중에 중첩 구조 지원 시 사용)
+        const componentData = {
+            code: newCode,
+            container: targetContainer ? targetContainer.dataset.elementIndex : null
+        };
+
         // 코드 업데이트 콜백 호출
         if (this.onCodeUpdate) {
-            this.onCodeUpdate('add', newCode);
+            this.onCodeUpdate('add', newCode, componentData);
         }
     }
 
@@ -260,6 +322,7 @@ class WireframeRenderer {
         // 캔버스 초기화
         this.canvas.innerHTML = '';
         this.currentData = data;
+        this.zIndexCounter = 1; // z-index 카운터 초기화
 
         // 와이어프레임을 담을 wrapper 생성
         const wrapper = document.createElement('div');
@@ -280,6 +343,7 @@ class WireframeRenderer {
             title.style.left = '10px';
             title.style.fontSize = '12px';
             title.style.color = '#999';
+            title.style.zIndex = '0';
             wrapper.appendChild(title);
         }
 
@@ -288,6 +352,9 @@ class WireframeRenderer {
             const element = data.elements[i];
             const rendered = this.renderElement(element);
             if (rendered) {
+                // z-index 자동 할당 (겹침 허용)
+                rendered.style.zIndex = this.zIndexCounter++;
+
                 // 드래그 가능하도록 설정
                 this.makeDraggable(rendered, element, i);
                 wrapper.appendChild(rendered);
@@ -330,16 +397,31 @@ class WireframeRenderer {
 
             if (this.draggedElement) {
                 const wrapper = this.canvas.querySelector('.wireframe-wrapper');
-                const rect = wrapper.getBoundingClientRect();
+                const wrapperRect = wrapper.getBoundingClientRect();
 
-                // 새 위치 계산
-                let newX = Math.round(e.clientX - rect.left - this.draggedElement.offsetX);
-                let newY = Math.round(e.clientY - rect.top - this.draggedElement.offsetY);
+                // 드롭 위치의 컨테이너 확인
+                const targetContainer = this.findContainerAtPoint(e.clientX, e.clientY);
 
-                // 스냅 적용
-                const snapped = this.applySnap(newX, newY, this.draggedElement.index);
-                newX = snapped.x;
-                newY = snapped.y;
+                let newX, newY;
+
+                if (targetContainer && targetContainer !== domElement) {
+                    // 컨테이너 내부로 드롭된 경우 - 상대 좌표 사용
+                    const containerRect = targetContainer.getBoundingClientRect();
+                    newX = Math.round(e.clientX - containerRect.left - this.draggedElement.offsetX);
+                    newY = Math.round(e.clientY - containerRect.top - this.draggedElement.offsetY);
+
+                    // 컨테이너 내부에서는 스냅 적용 안 함 (자유 배치)
+                    console.log(`컨테이너 내부로 이동: ${targetContainer.className} (${newX}, ${newY})`);
+                } else {
+                    // 일반 영역으로 드롭된 경우
+                    newX = Math.round(e.clientX - wrapperRect.left - this.draggedElement.offsetX);
+                    newY = Math.round(e.clientY - wrapperRect.top - this.draggedElement.offsetY);
+
+                    // 스냅 적용
+                    const snapped = this.applySnap(newX, newY, this.draggedElement.index);
+                    newX = snapped.x;
+                    newY = snapped.y;
+                }
 
                 // 위치가 실제로 변경된 경우에만 업데이트
                 if (newX !== this.draggedElement.startX || newY !== this.draggedElement.startY) {
