@@ -449,10 +449,25 @@ class WireframeRenderer {
 
                 const startMouseX = e.clientX;
                 const startMouseY = e.clientY;
-                const startWidth = dataElement.props.width || 100;
-                const startHeight = dataElement.props.height || 100;
-                const startLeft = dataElement.props.x || 0;
-                const startTop = dataElement.props.y || 0;
+
+                // width/height가 배열인 경우 첫 번째 값 사용, 아니면 숫자로 변환
+                let startWidth = dataElement.props.width || 100;
+                let startHeight = dataElement.props.height || 100;
+                let startLeft = dataElement.props.x || 0;
+                let startTop = dataElement.props.y || 0;
+
+                // 배열인 경우 첫 번째 요소 추출
+                if (Array.isArray(startWidth)) startWidth = startWidth[0];
+                if (Array.isArray(startHeight)) startHeight = startHeight[0];
+                if (Array.isArray(startLeft)) startLeft = startLeft[0];
+                if (Array.isArray(startTop)) startTop = startTop[0];
+
+                // 숫자로 변환
+                startWidth = Number(startWidth) || 100;
+                startHeight = Number(startHeight) || 100;
+                startLeft = Number(startLeft) || 0;
+                startTop = Number(startTop) || 0;
+
                 const direction = handleConfig.name;
 
                 console.log('초기 상태:', { startWidth, startHeight, startLeft, startTop });
