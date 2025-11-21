@@ -598,7 +598,7 @@ function updateCodeWithPosition(element, index, newX, newY) {
     // 해당 요소의 코드 블록 찾기
     let blockStart = -1;
     let blockEnd = -1;
-    let blockCount = 0;
+    let blockCount = -1; // -1부터 시작 (page 블록 제외)
     let inBlock = false;
     let braceDepth = 0;
 
@@ -608,12 +608,18 @@ function updateCodeWithPosition(element, index, newX, newY) {
         // 블록 시작 감지
         if (!inBlock && line && !line.startsWith('//')) {
             if (line.includes('{')) {
+                // page 블록인지 확인
+                const isPageBlock = line.startsWith('page ');
+
+                if (!isPageBlock) {
+                    blockCount++; // page가 아닐 때만 카운트
+                }
+
                 if (blockCount === index) {
                     blockStart = i;
                     inBlock = true;
                     braceDepth = 1;
-                } else {
-                    blockCount++;
+                    console.log('대상 블록 찾음 (move):', { line, index, blockCount });
                 }
             }
         } else if (inBlock) {
@@ -678,7 +684,7 @@ function updateCodeWithSize(element, index, width, height, x, y) {
     // 해당 요소의 코드 블록 찾기
     let blockStart = -1;
     let blockEnd = -1;
-    let blockCount = 0;
+    let blockCount = -1; // -1부터 시작 (page 블록 제외)
     let inBlock = false;
     let braceDepth = 0;
 
@@ -688,12 +694,18 @@ function updateCodeWithSize(element, index, width, height, x, y) {
         // 블록 시작 감지
         if (!inBlock && line && !line.startsWith('//')) {
             if (line.includes('{')) {
+                // page 블록인지 확인
+                const isPageBlock = line.startsWith('page ');
+
+                if (!isPageBlock) {
+                    blockCount++; // page가 아닐 때만 카운트
+                }
+
                 if (blockCount === index) {
                     blockStart = i;
                     inBlock = true;
                     braceDepth = 1;
-                } else {
-                    blockCount++;
+                    console.log('대상 블록 찾음 (resize):', { line, index, blockCount });
                 }
             }
         } else if (inBlock) {
