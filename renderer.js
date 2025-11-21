@@ -313,6 +313,17 @@ class WireframeRenderer {
 
         // 드래그 시작
         domElement.addEventListener('dragstart', (e) => {
+            console.log('=== 컴포넌트 선택 (드래그) ===');
+            console.log('타입:', dataElement.type);
+            console.log('라벨:', dataElement.label || '(없음)');
+            console.log('인덱스:', index);
+            console.log('현재 위치:', { x: dataElement.props.x || 0, y: dataElement.props.y || 0 });
+            console.log('현재 크기:', {
+                width: dataElement.props.width || '(없음)',
+                height: dataElement.props.height || '(없음)'
+            });
+            console.log('클래스:', domElement.className);
+
             this.draggedElement = {
                 domElement: domElement,
                 dataElement: dataElement,
@@ -422,6 +433,12 @@ class WireframeRenderer {
                 e.preventDefault();
                 e.stopPropagation();
 
+                console.log('=== 컴포넌트 선택 (리사이즈) ===');
+                console.log('타입:', dataElement.type);
+                console.log('라벨:', dataElement.label || '(없음)');
+                console.log('인덱스:', index);
+                console.log('클래스:', domElement.className);
+                console.log('');
                 console.log('=== 리사이즈 시작 ===');
                 console.log('방향:', handleConfig.name);
                 console.log('초기 마우스:', { x: e.clientX, y: e.clientY });
@@ -470,6 +487,19 @@ class WireframeRenderer {
                         const actualHeightChange = startHeight - newHeight;
                         newY = startTop + actualHeightChange;
                     }
+
+                    // 실시간 로그
+                    console.log('리사이즈 중:', {
+                        마우스델타: { x: deltaX, y: deltaY },
+                        현재크기: { width: newWidth, height: newHeight },
+                        현재위치: { x: newX, y: newY },
+                        변화량: {
+                            width: newWidth - startWidth,
+                            height: newHeight - startHeight,
+                            x: newX - startLeft,
+                            y: newY - startTop
+                        }
+                    });
 
                     // 실시간 업데이트
                     domElement.style.width = newWidth + 'px';
