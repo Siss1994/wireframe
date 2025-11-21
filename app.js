@@ -2,6 +2,62 @@
  * Wireframe Code Builder - Main Application
  */
 
+// 컴포넌트 데이터
+const COMPONENTS_DATA = [
+    // 기본 컴포넌트
+    { name: 'page', icon: '📄', category: '기본', props: 'width, height', example: 'page "제목" {\n  width: 1200\n  height: 800\n}' },
+    { name: 'container', icon: '📦', category: '기본', props: 'x, y, width, height, background', example: 'container "컨테이너" {\n  x: 0, y: 0\n  width: 300, height: 200\n}' },
+    { name: 'button', icon: '🔘', category: '기본', props: 'x, y, width, height', example: 'button "클릭" {\n  x: 50, y: 50\n  width: 120, height: 40\n}' },
+    { name: 'text', icon: '📝', category: '기본', props: 'x, y, size, color', example: 'text "텍스트" {\n  x: 50, y: 100\n  size: 16, color: #333\n}' },
+    { name: 'input', icon: '⌨️', category: '기본', props: 'x, y, width, height', example: 'input "입력하세요" {\n  x: 50, y: 150\n  width: 200, height: 40\n}' },
+    { name: 'image', icon: '🖼️', category: '기본', props: 'x, y, width, height', example: 'image "이미지" {\n  x: 50, y: 200\n  width: 300, height: 200\n}' },
+    { name: 'grid', icon: '⊞', category: '기본', props: 'x, y, columns, gap, items', example: 'grid {\n  x: 50, y: 300\n  columns: 3, gap: 20, items: 6\n}' },
+
+    // 폼 요소
+    { name: 'checkbox', icon: '☑️', category: '폼', props: 'x, y, width, height', example: 'checkbox "동의합니다" {\n  x: 50, y: 200\n}' },
+    { name: 'radio', icon: '🔘', category: '폼', props: 'x, y, width, height', example: 'radio "옵션 1" {\n  x: 50, y: 230\n}' },
+    { name: 'dropdown', icon: '▼', category: '폼', props: 'x, y, width, height', example: 'dropdown "선택" {\n  x: 50, y: 260\n  width: 200\n}' },
+    { name: 'textarea', icon: '📄', category: '폼', props: 'x, y, width, height', example: 'textarea "내용" {\n  x: 50, y: 310\n  width: 300, height: 100\n}' },
+    { name: 'toggle', icon: '🔀', category: '폼', props: 'x, y, width, height', example: 'toggle "알림" {\n  x: 50, y: 420\n  width: 50, height: 25\n}' },
+    { name: 'slider', icon: '🎚️', category: '폼', props: 'x, y, width, height', example: 'slider {\n  x: 50, y: 460\n  width: 200\n}' },
+
+    // 레이아웃
+    { name: 'card', icon: '🗃️', category: '레이아웃', props: 'x, y, width, height', example: 'card "카드" {\n  x: 50, y: 500\n  width: 300, height: 200\n}' },
+    { name: 'sidebar', icon: '📑', category: '레이아웃', props: 'x, y, width, height', example: 'sidebar "메뉴" {\n  x: 0, y: 80\n  width: 250, height: 600\n}' },
+    { name: 'header', icon: '🎯', category: '레이아웃', props: 'x, y, width, height, background', example: 'header "헤더" {\n  x: 0, y: 0\n  width: 1200, height: 80\n}' },
+    { name: 'footer', icon: '⬛', category: '레이아웃', props: 'x, y, width, height, background', example: 'footer "© 2024" {\n  x: 0, y: 920\n  width: 1200, height: 80\n}' },
+    { name: 'modal', icon: '🪟', category: '레이아웃', props: 'x, y, width, height', example: 'modal "경고" {\n  x: 300, y: 150\n  width: 600, height: 400\n}' },
+
+    // 네비게이션
+    { name: 'navbar', icon: '🧭', category: '네비게이션', props: 'height, items', example: 'navbar {\n  height: 60\n  items: ["홈", "소개", "서비스"]\n}' },
+    { name: 'tabs', icon: '📑', category: '네비게이션', props: 'x, y, width, height, items', example: 'tabs {\n  x: 50, y: 100\n  width: 600\n  items: ["탭1", "탭2", "탭3"]\n}' },
+    { name: 'breadcrumb', icon: '🗺️', category: '네비게이션', props: 'x, y, width, height, items', example: 'breadcrumb {\n  x: 50, y: 150\n  items: ["홈", "카테고리", "현재"]\n}' },
+    { name: 'pagination', icon: '📄', category: '네비게이션', props: 'x, y, width, height, pages', example: 'pagination {\n  x: 50, y: 200\n  pages: 5\n}' },
+    { name: 'menu', icon: '☰', category: '네비게이션', props: 'x, y, width, height, items', example: 'menu {\n  x: 50, y: 250\n  width: 200\n  items: ["항목1", "항목2"]\n}' },
+
+    // 데이터
+    { name: 'table', icon: '📊', category: '데이터', props: 'x, y, width, height, rows, columns', example: 'table {\n  x: 50, y: 500\n  width: 600, height: 300\n  rows: 5, columns: 4\n}' },
+    { name: 'list', icon: '📋', category: '데이터', props: 'x, y, width, height, items', example: 'list {\n  x: 50, y: 850\n  items: ["항목1", "항목2", "항목3"]\n}' },
+
+    // 피드백
+    { name: 'alert', icon: 'ℹ️', category: '피드백', props: 'x, y, width, height, type', example: 'alert "알림" {\n  x: 50, y: 1000\n  width: 400\n  type: info\n}' },
+    { name: 'badge', icon: '🏷️', category: '피드백', props: 'x, y, width, height', example: 'badge "5" {\n  x: 150, y: 50\n  width: 30, height: 25\n}' },
+    { name: 'progress', icon: '📈', category: '피드백', props: 'x, y, width, height, value', example: 'progress {\n  x: 50, y: 1080\n  width: 300\n  value: 75\n}' },
+
+    // 미디어
+    { name: 'video', icon: '🎥', category: '미디어', props: 'x, y, width, height', example: 'video "비디오" {\n  x: 50, y: 1150\n  width: 640, height: 360\n}' },
+    { name: 'icon', icon: '⭐', category: '미디어', props: 'x, y, size', example: 'icon "⭐" {\n  x: 50, y: 1550\n  size: 32\n}' },
+
+    // 차트/맵
+    { name: 'chart', icon: '📊', category: '차트', props: 'x, y, width, height, type', example: 'chart "매출" {\n  x: 50, y: 1600\n  width: 400, height: 300\n  type: bar\n}' },
+    { name: 'map', icon: '🗺️', category: '지도', props: 'x, y, width, height', example: 'map "위치" {\n  x: 500, y: 1600\n  width: 600, height: 400\n}' },
+
+    // 기타
+    { name: 'divider', icon: '➖', category: '기타', props: 'x, y, width, height', example: 'divider {\n  x: 50, y: 2050\n  width: 600, height: 2\n}' },
+    { name: 'avatar', icon: '👤', category: '기타', props: 'x, y, size', example: 'avatar "👨" {\n  x: 50, y: 2100\n  size: 48\n}' },
+    { name: 'tooltip', icon: '💬', category: '기타', props: 'x, y, width, height', example: 'tooltip "도움말" {\n  x: 150, y: 2100\n  width: 150\n}' }
+];
+
 // 예제 와이어프레임 코드
 const EXAMPLE_CODE = `// 대시보드 예제 - 다양한 컴포넌트 데모
 page "관리자 대시보드" {
@@ -232,9 +288,83 @@ footer "© 2024 WireFrame Builder" {
   height: 60
 }`;
 
+// 컴포넌트 갤러리 렌더링 함수
+function renderComponentGallery() {
+    const galleryItems = document.getElementById('galleryItems');
+    const galleryPrev = document.getElementById('galleryPrev');
+    const galleryNext = document.getElementById('galleryNext');
+
+    // 컴포넌트 카드 생성
+    COMPONENTS_DATA.forEach(component => {
+        const card = document.createElement('div');
+        card.className = 'component-card';
+        card.dataset.component = component.name;
+
+        card.innerHTML = `
+            <div class="component-icon">${component.icon}</div>
+            <div class="component-name">${component.name}</div>
+            <div class="component-category">${component.category}</div>
+            <div class="component-tooltip">
+                <div class="tooltip-title">${component.name}</div>
+                <div class="tooltip-props">속성: ${component.props}</div>
+                <div class="tooltip-props" style="margin-top: 5px; font-style: italic;">클릭하여 예제 삽입</div>
+            </div>
+        `;
+
+        // 클릭 이벤트: 에디터에 예제 코드 삽입
+        card.addEventListener('click', () => {
+            const codeEditor = document.getElementById('codeEditor');
+            const cursorPos = codeEditor.selectionStart;
+            const textBefore = codeEditor.value.substring(0, cursorPos);
+            const textAfter = codeEditor.value.substring(cursorPos);
+
+            // 예제 코드 삽입
+            codeEditor.value = textBefore + '\n' + component.example + '\n' + textAfter;
+
+            // 커서 위치 조정
+            const newCursorPos = cursorPos + component.example.length + 2;
+            codeEditor.setSelectionRange(newCursorPos, newCursorPos);
+            codeEditor.focus();
+
+            // 카드 활성화 표시
+            document.querySelectorAll('.component-card').forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+
+            setTimeout(() => card.classList.remove('active'), 1000);
+        });
+
+        galleryItems.appendChild(card);
+    });
+
+    // 좌우 스크롤 버튼
+    galleryPrev.addEventListener('click', () => {
+        galleryItems.scrollBy({ left: -300, behavior: 'smooth' });
+    });
+
+    galleryNext.addEventListener('click', () => {
+        galleryItems.scrollBy({ left: 300, behavior: 'smooth' });
+    });
+
+    // 스크롤 상태에 따라 버튼 비활성화
+    function updateNavButtons() {
+        const scrollLeft = galleryItems.scrollLeft;
+        const scrollWidth = galleryItems.scrollWidth;
+        const clientWidth = galleryItems.clientWidth;
+
+        galleryPrev.disabled = scrollLeft <= 0;
+        galleryNext.disabled = scrollLeft + clientWidth >= scrollWidth - 1;
+    }
+
+    galleryItems.addEventListener('scroll', updateNavButtons);
+    updateNavButtons();
+}
+
 // 앱 초기화
 document.addEventListener('DOMContentLoaded', () => {
     wireframeRenderer = new WireframeRenderer('canvas');
+
+    // 컴포넌트 갤러리 렌더링
+    renderComponentGallery();
 
     const codeEditor = document.getElementById('codeEditor');
     const renderBtn = document.getElementById('renderBtn');

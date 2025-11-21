@@ -37,6 +37,180 @@ header h1 {
     font-size: 1.1em;
 }
 
+/* ===== 컴포넌트 갤러리 ===== */
+.component-gallery {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.gallery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.gallery-header h3 {
+    font-size: 1.3em;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.gallery-nav {
+    display: flex;
+    gap: 10px;
+}
+
+.gallery-nav-btn {
+    width: 40px;
+    height: 40px;
+    border: 2px solid #3498db;
+    background: white;
+    color: #3498db;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.gallery-nav-btn:hover {
+    background: #3498db;
+    color: white;
+}
+
+.gallery-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.gallery-scroll-container {
+    position: relative;
+    overflow: hidden;
+}
+
+.gallery-items {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 10px 0;
+    scrollbar-width: thin;
+    scrollbar-color: #3498db #ecf0f1;
+}
+
+.gallery-items::-webkit-scrollbar {
+    height: 8px;
+}
+
+.gallery-items::-webkit-scrollbar-track {
+    background: #ecf0f1;
+    border-radius: 4px;
+}
+
+.gallery-items::-webkit-scrollbar-thumb {
+    background: #3498db;
+    border-radius: 4px;
+}
+
+.gallery-items::-webkit-scrollbar-thumb:hover {
+    background: #2980b9;
+}
+
+.component-card {
+    min-width: 150px;
+    background: #f8f9fa;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.component-card:hover {
+    border-color: #3498db;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+    transform: translateY(-2px);
+}
+
+.component-card.active {
+    border-color: #3498db;
+    background: #ebf5fb;
+}
+
+.component-icon {
+    font-size: 32px;
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.component-name {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 4px;
+}
+
+.component-category {
+    font-size: 11px;
+    color: #7f8c8d;
+    text-align: center;
+}
+
+/* 컴포넌트 툴팁 */
+.component-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2c3e50;
+    color: white;
+    padding: 12px 15px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    margin-bottom: 10px;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    max-width: 300px;
+    white-space: normal;
+}
+
+.component-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #2c3e50;
+}
+
+.component-card:hover .component-tooltip {
+    opacity: 1;
+}
+
+.tooltip-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #3498db;
+}
+
+.tooltip-props {
+    font-size: 11px;
+    line-height: 1.4;
+}
+
 .main-content {
     display: grid;
     grid-template-columns: 1fr 1fr;
