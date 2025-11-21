@@ -589,91 +589,6 @@ function renderComponentGallery() {
     updateNavButtons();
 }
 
-// 코드 업데이트 헬퍼 함수
-function updateCodeWithPosition(element, index, newX, newY) {
-    const codeEditor = document.getElementById('codeEditor');
-    const codeEditorModal = document.getElementById('codeEditorModal');
-    const lines = codeEditor.value.split('\n');
-
-    // 해당 요소의 코드 블록 찾기
-    let blockStart = -1;
-    let blockEnd = -1;
-    let blockCount = -1; // -1부터 시작 (page 블록 제외)
-    let inBlock = false;
-    let braceDepth = 0;
-
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-
-        // 블록 시작 감지
-        if (!inBlock && line && !line.startsWith('//')) {
-            if (line.includes('{')) {
-                // page 블록인지 확인
-                const isPageBlock = line.startsWith('page ');
-
-                if (!isPageBlock) {
-                    blockCount++; // page가 아닐 때만 카운트
-                }
-
-                if (blockCount === index) {
-                    blockStart = i;
-                    inBlock = true;
-                    braceDepth = 1;
-                    console.log('대상 블록 찾음 (move):', { line, index, blockCount });
-                }
-            }
-        } else if (inBlock) {
-            if (line.includes('{')) braceDepth++;
-            if (line.includes('}')) {
-                braceDepth--;
-                if (braceDepth === 0) {
-                    blockEnd = i;
-                    break;
-                }
-            }
-        }
-    }
-
-    if (blockStart === -1 || blockEnd === -1) {
-        console.error('Could not find element block in code');
-        return;
-    }
-
-    // x, y 값 업데이트
-    let xUpdated = false;
-    let yUpdated = false;
-
-    for (let i = blockStart + 1; i < blockEnd; i++) {
-        const line = lines[i];
-        if (line.includes('x:')) {
-            lines[i] = line.replace(/x:\s*\d+/, `x: ${newX}`);
-            xUpdated = true;
-        } else if (line.includes('y:')) {
-            lines[i] = line.replace(/y:\s*\d+/, `y: ${newY}`);
-            yUpdated = true;
-        }
-    }
-
-    // x, y가 없으면 추가
-    if (!xUpdated || !yUpdated) {
-        const indent = '  ';
-        const positionLine = `${indent}x: ${newX}, y: ${newY}`;
-        lines.splice(blockStart + 1, 0, positionLine);
-    }
-
-    const newCode = lines.join('\n');
-    codeEditor.value = newCode;
-    codeEditorModal.value = newCode;
-
-    // 자동 렌더링
-    try {
-        const parsedData = wireframeParser.parse(newCode);
-        wireframeRenderer.render(parsedData);
-    } catch (error) {
-        console.error('Failed to render after position update:', error);
-    }
-}
-
 function addCodeToEditor(code) {
     const codeEditor = document.getElementById('codeEditor');
     const codeEditorModal = document.getElementById('codeEditorModal');
@@ -725,9 +640,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 코드 업데이트 콜백 설정
     wireframeRenderer.onCodeUpdate = (action, data) => {
-        if (action === 'move') {
-            updateCodeWithPosition(data.element, data.index, data.newX, data.newY);
-        } else if (action === 'add') {
+        if (action === 'add') {
             addCodeToEditor(data);
         }
     };
