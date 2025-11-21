@@ -160,6 +160,9 @@ class WireframeRenderer {
 
     // 스냅 로직 적용
     applySnap(x, y, currentIndex) {
+        console.log('--- 스냅 계산 시작 ---');
+        console.log('입력 좌표:', { x, y });
+
         let snappedX = x;
         let snappedY = y;
         const guidelines = [];
@@ -168,12 +171,30 @@ class WireframeRenderer {
         const gridSnappedX = Math.round(x / this.gridSize) * this.gridSize;
         const gridSnappedY = Math.round(y / this.gridSize) * this.gridSize;
 
+        console.log('그리드 스냅 후보:', {
+            gridSnappedX,
+            gridSnappedY,
+            xDistance: Math.abs(x - gridSnappedX),
+            yDistance: Math.abs(y - gridSnappedY),
+            threshold: this.snapThreshold
+        });
+
+        let gridSnappedXApplied = false;
+        let gridSnappedYApplied = false;
+
         if (Math.abs(x - gridSnappedX) < this.snapThreshold) {
             snappedX = gridSnappedX;
+            gridSnappedXApplied = true;
         }
         if (Math.abs(y - gridSnappedY) < this.snapThreshold) {
             snappedY = gridSnappedY;
+            gridSnappedYApplied = true;
         }
+
+        console.log('그리드 스냅 적용:', {
+            x: gridSnappedXApplied,
+            y: gridSnappedYApplied
+        });
 
         // 다른 요소들과의 스냅
         if (this.currentData && this.currentData.elements) {
@@ -222,6 +243,10 @@ class WireframeRenderer {
                 });
             });
         }
+
+        console.log('--- 스냅 계산 완료 ---');
+        console.log('최종 스냅 좌표:', { x: snappedX, y: snappedY });
+        console.log('가이드라인 개수:', guidelines.length);
 
         return { x: snappedX, y: snappedY, guidelines };
     }
@@ -403,13 +428,24 @@ class WireframeRenderer {
             prevHighlighted.forEach(el => el.classList.remove('container-highlight'));
 
             if (this.draggedElement) {
+                console.log('=== 드래그 종료 ===');
+                console.log('드롭 마우스 위치:', { x: e.clientX, y: e.clientY });
+
                 const wrapper = this.canvas.querySelector('.wireframe-wrapper');
                 const wrapperRect = wrapper.getBoundingClientRect();
+
+                console.log('Wrapper 위치:', {
+                    left: wrapperRect.left,
+                    top: wrapperRect.top,
+                    width: wrapperRect.width,
+                    height: wrapperRect.height
+                });
 
                 // 드롭 위치의 컨테이너 확인
                 const targetContainer = this.findContainerAtPoint(e.clientX, e.clientY);
 
                 let newX, newY;
+                let beforeSnap = { x: 0, y: 0 };
 
                 if (targetContainer && targetContainer !== domElement) {
                     // 컨테이너 내부로 드롭된 경우 - 상대 좌표 사용
@@ -417,22 +453,43 @@ class WireframeRenderer {
                     newX = Math.round(e.clientX - containerRect.left - this.draggedElement.offsetX);
                     newY = Math.round(e.clientY - containerRect.top - this.draggedElement.offsetY);
 
-                    // 컨테이너 내부에서는 스냅 적용 안 함 (자유 배치)
-                    console.log(`컨테이너 내부로 이동: ${targetContainer.className} (${newX}, ${newY})`);
+                    console.log('컨테이너 내부 드롭:', {
+                        container: targetContainer.className,
+                        containerRect: { left: containerRect.left, top: containerRect.top },
+                        offset: { x: this.draggedElement.offsetX, y: this.draggedElement.offsetY },
+                        계산된좌표: { x: newX, y: newY }
+                    });
                 } else {
                     // 일반 영역으로 드롭된 경우
-                    newX = Math.round(e.clientX - wrapperRect.left - this.draggedElement.offsetX);
-                    newY = Math.round(e.clientY - wrapperRect.top - this.draggedElement.offsetY);
+                    beforeSnap.x = Math.round(e.clientX - wrapperRect.left - this.draggedElement.offsetX);
+                    beforeSnap.y = Math.round(e.clientY - wrapperRect.top - this.draggedElement.offsetY);
+
+                    console.log('일반 영역 드롭 (스냅 전):', beforeSnap);
 
                     // 스냅 적용
-                    const snapped = this.applySnap(newX, newY, this.draggedElement.index);
+                    const snapped = this.applySnap(beforeSnap.x, beforeSnap.y, this.draggedElement.index);
                     newX = snapped.x;
                     newY = snapped.y;
+
+                    console.log('스냅 후:', { x: newX, y: newY });
+                    console.log('스냅 변화량:', {
+                        deltaX: newX - beforeSnap.x,
+                        deltaY: newY - beforeSnap.y
+                    });
                 }
+
+                console.log('최종 위치:', { x: newX, y: newY });
+                console.log('시작 위치:', { x: this.draggedElement.startX, y: this.draggedElement.startY });
+                console.log('위치 변화:', {
+                    deltaX: newX - this.draggedElement.startX,
+                    deltaY: newY - this.draggedElement.startY
+                });
 
                 // 위치가 실제로 변경된 경우에만 업데이트
                 if (newX !== this.draggedElement.startX || newY !== this.draggedElement.startY) {
                     this.updateElementPosition(this.draggedElement.index, newX, newY);
+                } else {
+                    console.log('위치 변화 없음 - 업데이트 스킵');
                 }
 
                 this.draggedElement = null;
@@ -479,23 +536,27 @@ class WireframeRenderer {
                 e.preventDefault();
                 e.stopPropagation();
 
-                console.log('리사이즈 시작:', handleConfig.name);
+                console.log('=== 리사이즈 시작 ===');
+                console.log('방향:', handleConfig.name);
+                console.log('초기 마우스:', { x: e.clientX, y: e.clientY });
 
                 // 드래그 비활성화
                 domElement.setAttribute('draggable', 'false');
                 domElement.classList.add('resizing');
 
-                const startX = e.clientX;
-                const startY = e.clientY;
+                const startMouseX = e.clientX;
+                const startMouseY = e.clientY;
                 const startWidth = dataElement.props.width || 100;
                 const startHeight = dataElement.props.height || 100;
                 const startLeft = dataElement.props.x || 0;
                 const startTop = dataElement.props.y || 0;
                 const direction = handleConfig.name;
 
+                console.log('초기 상태:', { startWidth, startHeight, startLeft, startTop });
+
                 const onMouseMove = (e) => {
-                    const deltaX = e.clientX - startX;
-                    const deltaY = e.clientY - startY;
+                    const deltaX = e.clientX - startMouseX;
+                    const deltaY = e.clientY - startMouseY;
 
                     let newWidth = startWidth;
                     let newHeight = startHeight;
@@ -507,27 +568,28 @@ class WireframeRenderer {
                         newWidth = Math.max(20, startWidth + deltaX);
                     }
                     if (direction.includes('left')) {
-                        newWidth = Math.max(20, startWidth - deltaX);
-                        newX = startLeft + (startWidth - newWidth);
+                        const proposedWidth = startWidth - deltaX;
+                        newWidth = Math.max(20, proposedWidth);
+                        // 실제로 변경된 크기만큼 위치 조정
+                        const actualWidthChange = startWidth - newWidth;
+                        newX = startLeft + actualWidthChange;
                     }
                     if (direction.includes('bottom')) {
                         newHeight = Math.max(20, startHeight + deltaY);
                     }
                     if (direction.includes('top')) {
-                        newHeight = Math.max(20, startHeight - deltaY);
-                        newY = startTop + (startHeight - newHeight);
+                        const proposedHeight = startHeight - deltaY;
+                        newHeight = Math.max(20, proposedHeight);
+                        // 실제로 변경된 크기만큼 위치 조정
+                        const actualHeightChange = startHeight - newHeight;
+                        newY = startTop + actualHeightChange;
                     }
 
                     // 실시간 업데이트
                     domElement.style.width = newWidth + 'px';
                     domElement.style.height = newHeight + 'px';
-
-                    if (newX !== startLeft) {
-                        domElement.style.left = newX + 'px';
-                    }
-                    if (newY !== startTop) {
-                        domElement.style.top = newY + 'px';
-                    }
+                    domElement.style.left = newX + 'px';
+                    domElement.style.top = newY + 'px';
                 };
 
                 const onMouseUp = (e) => {
@@ -543,7 +605,15 @@ class WireframeRenderer {
                     const finalX = parseInt(domElement.style.left);
                     const finalY = parseInt(domElement.style.top);
 
-                    console.log('리사이즈 완료:', finalWidth, finalHeight, finalX, finalY);
+                    console.log('=== 리사이즈 완료 ===');
+                    console.log('최종 크기:', { width: finalWidth, height: finalHeight });
+                    console.log('최종 위치:', { x: finalX, y: finalY });
+                    console.log('변화량:', {
+                        widthDelta: finalWidth - startWidth,
+                        heightDelta: finalHeight - startHeight,
+                        xDelta: finalX - startLeft,
+                        yDelta: finalY - startTop
+                    });
 
                     // 코드 업데이트
                     this.updateElementSize(index, finalWidth, finalHeight, finalX, finalY);
