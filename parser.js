@@ -140,6 +140,13 @@ class WireframeParser {
             textarea: { x: 0, y: 0, width: 300, height: 100 },
             toggle: { x: 0, y: 0, width: 50, height: 25 },
             slider: { x: 0, y: 0, width: 200, height: 30 },
+            search: { x: 0, y: 0, width: 300, height: 40 },
+            select: { x: 0, y: 0, width: 200, height: 40 },
+            fileupload: { x: 0, y: 0, width: 300, height: 40 },
+            datepicker: { x: 0, y: 0, width: 200, height: 40 },
+            timepicker: { x: 0, y: 0, width: 150, height: 40 },
+            colorpicker: { x: 0, y: 0, width: 100, height: 40 },
+            rating: { x: 0, y: 0, width: 150, height: 30, stars: 5 },
 
             // 레이아웃 요소
             card: { x: 0, y: 0, width: 300, height: 200 },
@@ -147,6 +154,11 @@ class WireframeParser {
             header: { x: 0, y: 0, width: 1200, height: 80, background: '#34495e' },
             footer: { x: 0, y: 0, width: 1200, height: 80, background: '#2c3e50' },
             modal: { x: 300, y: 150, width: 600, height: 400 },
+            dialog: { x: 400, y: 200, width: 400, height: 250 },
+            popup: { x: 500, y: 300, width: 300, height: 200 },
+            drawer: { x: 0, y: 0, width: 350, height: 600, position: 'right' },
+            toast: { x: 0, y: 0, width: 300, height: 80 },
+            snackbar: { x: 0, y: 0, width: 350, height: 60 },
 
             // 네비게이션
             tabs: { x: 0, y: 0, width: 600, height: 40, items: [] },

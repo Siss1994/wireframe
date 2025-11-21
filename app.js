@@ -20,6 +20,13 @@ const COMPONENTS_DATA = [
     { name: 'textarea', icon: '📄', category: '폼', props: 'x, y, width, height', example: 'textarea "내용" {\n  x: 50, y: 310\n  width: 300, height: 100\n}' },
     { name: 'toggle', icon: '🔀', category: '폼', props: 'x, y, width, height', example: 'toggle "알림" {\n  x: 50, y: 420\n  width: 50, height: 25\n}' },
     { name: 'slider', icon: '🎚️', category: '폼', props: 'x, y, width, height', example: 'slider {\n  x: 50, y: 460\n  width: 200\n}' },
+    { name: 'search', icon: '🔎', category: '폼', props: 'x, y, width, height', example: 'search "검색하기" {\n  x: 50, y: 500\n  width: 300, height: 40\n}' },
+    { name: 'select', icon: '📋', category: '폼', props: 'x, y, width, height', example: 'select "선택하세요" {\n  x: 50, y: 550\n  width: 200, height: 40\n}' },
+    { name: 'fileupload', icon: '📎', category: '폼', props: 'x, y, width, height', example: 'fileupload "파일 선택" {\n  x: 50, y: 600\n  width: 300, height: 40\n}' },
+    { name: 'datepicker', icon: '📅', category: '폼', props: 'x, y, width, height', example: 'datepicker "날짜" {\n  x: 50, y: 650\n  width: 200, height: 40\n}' },
+    { name: 'timepicker', icon: '⏰', category: '폼', props: 'x, y, width, height', example: 'timepicker "시간" {\n  x: 270, y: 650\n  width: 150, height: 40\n}' },
+    { name: 'colorpicker', icon: '🎨', category: '폼', props: 'x, y, width, height', example: 'colorpicker "#3498db" {\n  x: 50, y: 700\n  width: 100, height: 40\n}' },
+    { name: 'rating', icon: '⭐', category: '폼', props: 'x, y, width, height, stars', example: 'rating {\n  x: 50, y: 750\n  width: 150, height: 30\n  stars: 5\n}' },
 
     // 레이아웃
     { name: 'card', icon: '🗃️', category: '레이아웃', props: 'x, y, width, height', example: 'card "카드" {\n  x: 50, y: 500\n  width: 300, height: 200\n}' },
@@ -27,6 +34,11 @@ const COMPONENTS_DATA = [
     { name: 'header', icon: '🎯', category: '레이아웃', props: 'x, y, width, height, background', example: 'header "헤더" {\n  x: 0, y: 0\n  width: 1200, height: 80\n}' },
     { name: 'footer', icon: '⬛', category: '레이아웃', props: 'x, y, width, height, background', example: 'footer "© 2024" {\n  x: 0, y: 920\n  width: 1200, height: 80\n}' },
     { name: 'modal', icon: '🪟', category: '레이아웃', props: 'x, y, width, height', example: 'modal "경고" {\n  x: 300, y: 150\n  width: 600, height: 400\n}' },
+    { name: 'dialog', icon: '💬', category: '모달', props: 'x, y, width, height', example: 'dialog "확인" {\n  x: 400, y: 200\n  width: 400, height: 250\n}' },
+    { name: 'popup', icon: '📢', category: '모달', props: 'x, y, width, height', example: 'popup "공지사항" {\n  x: 500, y: 300\n  width: 300, height: 200\n}' },
+    { name: 'drawer', icon: '🗂️', category: '모달', props: 'x, y, width, height, position', example: 'drawer "설정" {\n  x: 0, y: 0\n  width: 350, height: 600\n  position: right\n}' },
+    { name: 'toast', icon: '🔔', category: '모달', props: 'x, y, width, height', example: 'toast "알림" {\n  x: 50, y: 50\n  width: 300, height: 80\n}' },
+    { name: 'snackbar', icon: '📨', category: '모달', props: 'x, y, width, height', example: 'snackbar "저장되었습니다" {\n  x: 50, y: 700\n  width: 350, height: 60\n}' },
 
     // 네비게이션
     { name: 'navbar', icon: '🧭', category: '네비게이션', props: 'height, items', example: 'navbar {\n  height: 60\n  items: ["홈", "소개", "서비스"]\n}' },

@@ -390,6 +390,13 @@ class WireframeRenderer {
             textarea: this.renderTextarea.bind(this),
             toggle: this.renderToggle.bind(this),
             slider: this.renderSlider.bind(this),
+            search: this.renderSearch.bind(this),
+            select: this.renderSelect.bind(this),
+            fileupload: this.renderFileUpload.bind(this),
+            datepicker: this.renderDatePicker.bind(this),
+            timepicker: this.renderTimePicker.bind(this),
+            colorpicker: this.renderColorPicker.bind(this),
+            rating: this.renderRating.bind(this),
 
             // 레이아웃 요소
             card: this.renderCard.bind(this),
@@ -397,6 +404,11 @@ class WireframeRenderer {
             header: this.renderHeader.bind(this),
             footer: this.renderFooter.bind(this),
             modal: this.renderModal.bind(this),
+            dialog: this.renderDialog.bind(this),
+            popup: this.renderPopup.bind(this),
+            drawer: this.renderDrawer.bind(this),
+            toast: this.renderToast.bind(this),
+            snackbar: this.renderSnackbar.bind(this),
 
             // 네비게이션
             tabs: this.renderTabs.bind(this),
@@ -1425,6 +1437,329 @@ class WireframeRenderer {
             height: element.props.height + 'px'
         });
         return tooltip;
+    }
+
+    // ===== 추가 폼 요소 =====
+    renderSearch(element) {
+        const search = document.createElement('div');
+        search.className = 'wf-search';
+        this.applyStyles(search, {
+            left: element.props.x + 'px',
+            top: element.props.y + 'px',
+            width: element.props.width + 'px',
+            height: element.props.height + 'px'
+        });
+
+        const icon = document.createElement('span');
+        icon.textContent = '🔍';
+        icon.style.marginRight = '8px';
+
+        const input = document.createElement('span');
+        input.textContent = element.label || '검색...';
+        input.style.color = '#95a5a6';
+
+        search.appendChild(icon);
+        search.appendChild(input);
+        return search;
+    }
+
+    renderSelect(element) {
+        const select = document.createElement('div');
+        select.className = 'wf-select';
+        this.applyStyles(select, {
+            left: element.props.x + 'px',
+            top: element.props.y + 'px',
+            width: element.props.width + 'px',
+            height: element.props.height + 'px'
+        });
+
+        const label = document.createElement('span');
+        label.textContent = element.label || '선택하세요';
+
+        const arrow = document.createElement('span');
+        arrow.textContent = '▼';
+        arrow.style.marginLeft = 'auto';
+        arrow.style.fontSize = '12px';
+
+        select.appendChild(label);
+        select.appendChild(arrow);
+        return select;
+    }
+
+    renderFileUpload(element) {
+        const upload = document.createElement('div');
+        upload.className = 'wf-fileupload';
+        this.applyStyles(upload, {
+            left: element.props.x + 'px',
+            top: element.props.y + 'px',
+            width: element.props.width + 'px',
+            height: element.props.height + 'px'
+        });
+
+        const icon = document.createElement('span');
+        icon.textContent = '📎';
+        icon.style.marginRight = '8px';
+
+        const label = document.createElement('span');
+        label.textContent = element.label || '파일 선택';
+
+        upload.appendChild(icon);
+        upload.appendChild(label);
+        return upload;
+    }
+
+    renderDatePicker(element) {
+        const datepicker = document.createElement('div');
+        datepicker.className = 'wf-datepicker';
+        this.applyStyles(datepicker, {
+            left: element.props.x + 'px',
+            top: element.props.y + 'px',
+            width: element.props.width + 'px',
+            height: element.props.height + 'px'
+        });
+
+        const icon = document.createElement('span');
+        icon.textContent = '📅';
+        icon.style.marginRight = '8px';
+
+        const label = document.createElement('span');
+        label.textContent = element.label || 'YYYY-MM-DD';
+        label.style.color = '#95a5a6';
+
+        datepicker.appendChild(icon);
+        datepicker.appendChild(label);
+        return datepicker;
+    }
+
+    renderTimePicker(element) {
+        const timepicker = document.createElement('div');
+        timepicker.className = 'wf-timepicker';
+        this.applyStyles(timepicker, {
+            left: element.props.x + 'px',
+            top: element.props.y + 'px',
+            width: element.props.width + 'px',
+            height: element.props.height + 'px'
+        });
+
+        const icon = document.createElement('span');
+        icon.textContent = '🕐';
+        icon.style.marginRight = '8px';
+
+        const label = document.createElement('span');
+        label.textContent = element.label || 'HH:MM';
+        label.style.color = '#95a5a6';
+
+        timepicker.appendChild(icon);
+        timepicker.appendChild(label);
+        return timepicker;
+    }
+
+    renderColorPicker(element) {
+        const colorpicker = document.createElement('div');
+        colorpicker.className = 'wf-colorpicker';
+        this.applyStyles(colorpicker, {
+            left: element.props.x + 'px',
+            top: element.props.y + 'px',
+            width: element.props.width + 'px',
+            height: element.props.height + 'px'
+        });
+
+        const swatch = document.createElement('div');
+        swatch.style.width = '30px';
+        swatch.style.height = '30px';
+        swatch.style.background = '#3498db';
+        swatch.style.border = '2px solid #bdc3c7';
+        swatch.style.borderRadius = '4px';
+        swatch.style.marginRight = '8px';
+
+        const label = document.createElement('span');
+        label.textContent = element.label || '#3498db';
+
+        colorpicker.appendChild(swatch);
+        colorpicker.appendChild(label);
+        return colorpicker;
+    }
+
+    renderRating(element) {
+        const rating = document.createElement('div');
+        rating.className = 'wf-rating';
+        this.applyStyles(rating, {
+            left: element.props.x + 'px',
+            top: element.props.y + 'px',
+            width: element.props.width + 'px',
+            height: element.props.height + 'px'
+        });
+
+        const stars = element.props.stars || 5;
+        for (let i = 0; i < stars; i++) {
+            const star = document.createElement('span');
+            star.textContent = '⭐';
+            star.style.fontSize = '20px';
+            rating.appendChild(star);
+        }
+
+        return rating;
+    }
+
+    // ===== 추가 모달/레이아웃 요소 =====
+    renderDialog(element) {
+        const dialog = document.createElement('div');
+        dialog.className = 'wf-dialog';
+        this.applyStyles(dialog, {
+            left: element.props.x + 'px',
+            top: element.props.y + 'px',
+            width: element.props.width + 'px',
+            height: element.props.height + 'px'
+        });
+
+        const header = document.createElement('div');
+        header.style.padding = '15px';
+        header.style.borderBottom = '1px solid #e0e0e0';
+        header.style.fontWeight = 'bold';
+        header.textContent = element.label || '다이얼로그';
+
+        const content = document.createElement('div');
+        content.style.padding = '20px';
+        content.style.flex = '1';
+        content.textContent = '다이얼로그 내용';
+        content.style.color = '#7f8c8d';
+
+        const footer = document.createElement('div');
+        footer.style.padding = '15px';
+        footer.style.borderTop = '1px solid #e0e0e0';
+        footer.style.display = 'flex';
+        footer.style.justifyContent = 'flex-end';
+        footer.style.gap = '10px';
+
+        const btnCancel = document.createElement('div');
+        btnCancel.textContent = '취소';
+        btnCancel.style.padding = '8px 16px';
+        btnCancel.style.border = '1px solid #bdc3c7';
+        btnCancel.style.borderRadius = '4px';
+        btnCancel.style.fontSize = '12px';
+
+        const btnConfirm = document.createElement('div');
+        btnConfirm.textContent = '확인';
+        btnConfirm.style.padding = '8px 16px';
+        btnConfirm.style.background = '#3498db';
+        btnConfirm.style.color = 'white';
+        btnConfirm.style.borderRadius = '4px';
+        btnConfirm.style.fontSize = '12px';
+
+        footer.appendChild(btnCancel);
+        footer.appendChild(btnConfirm);
+
+        dialog.appendChild(header);
+        dialog.appendChild(content);
+        dialog.appendChild(footer);
+        return dialog;
+    }
+
+    renderPopup(element) {
+        const popup = document.createElement('div');
+        popup.className = 'wf-popup';
+        this.applyStyles(popup, {
+            left: element.props.x + 'px',
+            top: element.props.y + 'px',
+            width: element.props.width + 'px',
+            height: element.props.height + 'px'
+        });
+
+        const close = document.createElement('span');
+        close.textContent = '✕';
+        close.style.position = 'absolute';
+        close.style.right = '10px';
+        close.style.top = '10px';
+        close.style.cursor = 'pointer';
+
+        const title = document.createElement('div');
+        title.textContent = element.label || '팝업';
+        title.style.padding = '15px';
+        title.style.fontWeight = 'bold';
+
+        const content = document.createElement('div');
+        content.textContent = '팝업 내용';
+        content.style.padding = '0 15px 15px';
+        content.style.color = '#7f8c8d';
+
+        popup.appendChild(close);
+        popup.appendChild(title);
+        popup.appendChild(content);
+        return popup;
+    }
+
+    renderDrawer(element) {
+        const drawer = document.createElement('div');
+        drawer.className = 'wf-drawer';
+        this.applyStyles(drawer, {
+            left: element.props.position === 'left' ? '0px' : 'auto',
+            right: element.props.position === 'right' ? '0px' : 'auto',
+            top: element.props.y + 'px',
+            width: element.props.width + 'px',
+            height: element.props.height + 'px'
+        });
+
+        const header = document.createElement('div');
+        header.style.padding = '20px';
+        header.style.borderBottom = '1px solid #e0e0e0';
+        header.style.fontWeight = 'bold';
+        header.textContent = element.label || 'Drawer';
+
+        const content = document.createElement('div');
+        content.style.padding = '20px';
+        content.textContent = 'Drawer 내용';
+        content.style.color = '#7f8c8d';
+
+        drawer.appendChild(header);
+        drawer.appendChild(content);
+        return drawer;
+    }
+
+    renderToast(element) {
+        const toast = document.createElement('div');
+        toast.className = 'wf-toast';
+        this.applyStyles(toast, {
+            left: element.props.x + 'px',
+            top: element.props.y + 'px',
+            width: element.props.width + 'px',
+            height: element.props.height + 'px'
+        });
+
+        const icon = document.createElement('span');
+        icon.textContent = 'ℹ️';
+        icon.style.marginRight = '10px';
+
+        const message = document.createElement('span');
+        message.textContent = element.label || '알림 메시지';
+
+        toast.appendChild(icon);
+        toast.appendChild(message);
+        return toast;
+    }
+
+    renderSnackbar(element) {
+        const snackbar = document.createElement('div');
+        snackbar.className = 'wf-snackbar';
+        this.applyStyles(snackbar, {
+            left: element.props.x + 'px',
+            top: element.props.y + 'px',
+            width: element.props.width + 'px',
+            height: element.props.height + 'px'
+        });
+
+        const message = document.createElement('span');
+        message.textContent = element.label || '작업이 완료되었습니다';
+
+        const action = document.createElement('span');
+        action.textContent = '실행취소';
+        action.style.marginLeft = 'auto';
+        action.style.color = '#3498db';
+        action.style.cursor = 'pointer';
+        action.style.fontWeight = 'bold';
+
+        snackbar.appendChild(message);
+        snackbar.appendChild(action);
+        return snackbar;
     }
 
     applyStyles(element, styles) {
