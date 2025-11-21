@@ -658,14 +658,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearBtnModal = document.getElementById('clearBtnModal');
     const exampleBtnModal = document.getElementById('exampleBtnModal');
 
-    // 자동 렌더링 토글 버튼들
-    const autoRenderToggle = document.getElementById('autoRenderToggle');
-    const manualRenderToggle = document.getElementById('manualRenderToggle');
-
-    // 자동 렌더링 상태 및 타이머
-    let autoRenderEnabled = true; // 기본값: 자동 렌더링
-    let autoRenderTimer = null;
-
     // 뷰 모드 토글 함수
     function setViewMode(mode) {
         // body 클래스 초기화
@@ -901,60 +893,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 자동 렌더링 토글 기능
-    function setRenderMode(mode) {
-        if (mode === 'auto') {
-            autoRenderEnabled = true;
-            autoRenderToggle.classList.add('active');
-            manualRenderToggle.classList.remove('active');
-            renderBtnModal.style.display = 'none'; // 자동 모드에서는 렌더링 버튼 숨김
-        } else {
-            autoRenderEnabled = false;
-            manualRenderToggle.classList.add('active');
-            autoRenderToggle.classList.remove('active');
-            renderBtnModal.style.display = 'inline-block'; // 수동 모드에서는 렌더링 버튼 표시
-            // 자동 렌더링 타이머 취소
-            if (autoRenderTimer) {
-                clearTimeout(autoRenderTimer);
-                autoRenderTimer = null;
-            }
-        }
-    }
-
-    // 토글 버튼 이벤트
-    autoRenderToggle.addEventListener('click', () => setRenderMode('auto'));
-    manualRenderToggle.addEventListener('click', () => setRenderMode('manual'));
-
-    // 자동 렌더링 함수 (1초 디바운스)
-    function triggerAutoRender() {
-        // 둘다보기 모드가 아니면 작동하지 않음
-        const viewMode = document.body.className.match(/view-(\w+)/)?.[1];
-        if (viewMode !== 'both') {
-            return;
-        }
-
-        // 자동 렌더링이 비활성화되어 있으면 작동하지 않음
-        if (!autoRenderEnabled) {
-            return;
-        }
-
-        // 기존 타이머 취소
-        if (autoRenderTimer) {
-            clearTimeout(autoRenderTimer);
-        }
-
-        // 1초 후 렌더링
-        autoRenderTimer = setTimeout(() => {
-            syncCodeToMain(); // 모달 코드를 메인으로 동기화
-            renderCode(codeEditorModal.value);
-        }, 1000);
-    }
-
-    // 모달 에디터에 입력 이벤트 추가
-    codeEditorModal.addEventListener('input', () => {
-        triggerAutoRender();
-    });
-
     // 컴포넌트 갤러리 클릭 시 현재 뷰 모드에 따라 코드 삽입
     const originalGalleryItems = document.getElementById('galleryItems');
     originalGalleryItems.addEventListener('click', (e) => {
@@ -976,7 +914,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 초기 뷰 모드 설정 (둘다보기)
     setViewMode('both');
-
-    // 초기 렌더 모드 설정 (자동 렌더링)
-    setRenderMode('auto');
 });
