@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wireframe Code Builder</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Wireframe Code Builder</h1>
+            <p class="subtitle">코드로 와이어프레임을 그려보세요!</p>
+        </header>
+
+        <div class="main-content">
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <h2>코드 에디터</h2>
+                    <div class="controls">
+                        <button id="renderBtn" class="btn-primary">렌더링</button>
+                        <button id="clearBtn" class="btn-secondary">초기화</button>
+                        <button id="exampleBtn" class="btn-secondary">예제 보기</button>
+                    </div>
+                </div>
+                <textarea id="codeEditor" placeholder="여기에 와이어프레임 코드를 입력하세요..."></textarea>
+            </div>
+
+            <div class="preview-panel">
+                <div class="panel-header">
+                    <h2>미리보기</h2>
+                    <div class="controls">
+                        <button id="exportBtn" class="btn-secondary">이미지 저장</button>
+                    </div>
+                </div>
+                <div id="canvas" class="canvas"></div>
+            </div>
+        </div>
+
+        <div class="documentation">
+            <details>
+                <summary>사용 방법 및 문법 가이드</summary>
+                <div class="doc-content">
+                    <h3>기본 문법</h3>
+                    <pre><code>// 페이지 정의
+page "페이지 제목" {
+  width: 1200
+  height: 800
+}
+
+// 컨테이너 (레이아웃)
+container "컨테이너명" {
+  x: 0
+  y: 0
+  width: 1200
+  height: 100
+  background: #f0f0f0
+}
+
+// 버튼
+button "버튼 텍스트" {
+  x: 50
+  y: 50
+  width: 120
+  height: 40
+}
+
+// 텍스트
+text "텍스트 내용" {
+  x: 50
+  y: 100
+  size: 16
+  color: #333
+}
+
+// 입력 필드
+input "placeholder 텍스트" {
+  x: 50
+  y: 150
+  width: 200
+  height: 40
+}
+
+// 이미지 플레이스홀더
+image "이미지 설명" {
+  x: 50
+  y: 200
+  width: 300
+  height: 200
+}
+
+// 네비게이션
+navbar {
+  height: 60
+  items: ["홈", "소개", "서비스", "연락처"]
+}
+
+// 그리드 레이아웃
+grid {
+  x: 50
+  y: 300
+  columns: 3
+  gap: 20
+  items: 6
+}</code></pre>
+
+                    <h3>예제</h3>
+                    <p>예제 보기 버튼을 클릭하면 샘플 와이어프레임 코드를 확인할 수 있습니다.</p>
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <script src="parser.js"></script>
+    <script src="renderer.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
