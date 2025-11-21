@@ -29,8 +29,17 @@
             </div>
         </div>
 
+        <!-- 뷰 모드 토글 -->
+        <div class="view-mode-toggle">
+            <button class="view-mode-btn" id="viewCodeBtn">코드보기</button>
+            <button class="view-mode-btn active" id="viewBothBtn">둘다보기</button>
+            <button class="view-mode-btn" id="viewPreviewBtn">미리보기</button>
+        </div>
+
+        <!-- 메인 컨텐츠 -->
         <div class="main-content">
-            <div class="editor-panel">
+            <!-- 코드 에디터 패널 -->
+            <div class="editor-panel" id="editorPanel">
                 <div class="panel-header">
                     <h2>코드 에디터</h2>
                     <div class="controls">
@@ -42,7 +51,8 @@
                 <textarea id="codeEditor" placeholder="여기에 와이어프레임 코드를 입력하세요..."></textarea>
             </div>
 
-            <div class="preview-panel">
+            <!-- 미리보기 패널 -->
+            <div class="preview-panel" id="previewPanel">
                 <div class="panel-header">
                     <h2>미리보기</h2>
                     <div class="controls">
@@ -50,6 +60,22 @@
                     </div>
                 </div>
                 <div id="canvas" class="canvas"></div>
+            </div>
+        </div>
+
+        <!-- 코드 모달 (둘다보기 모드용) -->
+        <div class="code-modal" id="codeModal">
+            <div class="code-modal-header">
+                <h3>코드 에디터</h3>
+                <div class="code-modal-controls">
+                    <button id="renderBtnModal" class="btn-primary btn-sm">렌더링</button>
+                    <button id="clearBtnModal" class="btn-secondary btn-sm">초기화</button>
+                    <button id="exampleBtnModal" class="btn-secondary btn-sm">예제</button>
+                    <button id="toggleCodeModal" class="btn-toggle">▼</button>
+                </div>
+            </div>
+            <div class="code-modal-content" id="codeModalContent">
+                <textarea id="codeEditorModal" placeholder="여기에 와이어프레임 코드를 입력하세요..."></textarea>
             </div>
         </div>
 

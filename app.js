@@ -367,15 +367,59 @@ document.addEventListener('DOMContentLoaded', () => {
     renderComponentGallery();
 
     const codeEditor = document.getElementById('codeEditor');
+    const codeEditorModal = document.getElementById('codeEditorModal');
     const renderBtn = document.getElementById('renderBtn');
     const clearBtn = document.getElementById('clearBtn');
     const exampleBtn = document.getElementById('exampleBtn');
     const exportBtn = document.getElementById('exportBtn');
 
-    // 렌더링 버튼
-    renderBtn.addEventListener('click', () => {
-        const code = codeEditor.value;
+    // 뷰 모드 토글 요소들
+    const viewCodeBtn = document.getElementById('viewCodeBtn');
+    const viewBothBtn = document.getElementById('viewBothBtn');
+    const viewPreviewBtn = document.getElementById('viewPreviewBtn');
+    const codeModal = document.getElementById('codeModal');
+    const toggleCodeModal = document.getElementById('toggleCodeModal');
+    const codeModalContent = document.getElementById('codeModalContent');
 
+    // 모달 버튼들
+    const renderBtnModal = document.getElementById('renderBtnModal');
+    const clearBtnModal = document.getElementById('clearBtnModal');
+    const exampleBtnModal = document.getElementById('exampleBtnModal');
+
+    // 뷰 모드 토글 함수
+    function setViewMode(mode) {
+        // body 클래스 초기화
+        document.body.classList.remove('view-code', 'view-both', 'view-preview');
+
+        // 새로운 모드 적용
+        document.body.classList.add(`view-${mode}`);
+
+        // 버튼 활성화 상태 업데이트
+        [viewCodeBtn, viewBothBtn, viewPreviewBtn].forEach(btn => btn.classList.remove('active'));
+
+        if (mode === 'code') {
+            viewCodeBtn.classList.add('active');
+        } else if (mode === 'both') {
+            viewBothBtn.classList.add('active');
+            // 둘다보기 모드에서는 코드 동기화
+            syncCodeToModal();
+        } else if (mode === 'preview') {
+            viewPreviewBtn.classList.add('active');
+        }
+    }
+
+    // 코드 동기화 함수 (main -> modal)
+    function syncCodeToModal() {
+        codeEditorModal.value = codeEditor.value;
+    }
+
+    // 코드 동기화 함수 (modal -> main)
+    function syncCodeToMain() {
+        codeEditor.value = codeEditorModal.value;
+    }
+
+    // 렌더링 함수 (공통)
+    function renderCode(code) {
         if (!code.trim()) {
             wireframeRenderer.showError('코드를 입력해주세요.');
             return;
@@ -388,19 +432,61 @@ document.addEventListener('DOMContentLoaded', () => {
             wireframeRenderer.showError(error.message);
             console.error('Parsing error:', error);
         }
+    }
+
+    // 뷰 모드 버튼 이벤트
+    viewCodeBtn.addEventListener('click', () => setViewMode('code'));
+    viewBothBtn.addEventListener('click', () => setViewMode('both'));
+    viewPreviewBtn.addEventListener('click', () => setViewMode('preview'));
+
+    // 코드 모달 토글 버튼
+    toggleCodeModal.addEventListener('click', () => {
+        codeModalContent.classList.toggle('collapsed');
+        toggleCodeModal.textContent = codeModalContent.classList.contains('collapsed') ? '▲' : '▼';
     });
 
-    // 초기화 버튼
+    // 렌더링 버튼 (메인)
+    renderBtn.addEventListener('click', () => {
+        renderCode(codeEditor.value);
+    });
+
+    // 렌더링 버튼 (모달)
+    renderBtnModal.addEventListener('click', () => {
+        syncCodeToMain(); // 모달 코드를 메인으로 동기화
+        renderCode(codeEditorModal.value);
+    });
+
+    // 초기화 버튼 (메인)
     clearBtn.addEventListener('click', () => {
         if (confirm('작성한 코드를 모두 지우시겠습니까?')) {
             codeEditor.value = '';
+            codeEditorModal.value = '';
             wireframeRenderer.canvas.innerHTML = '';
         }
     });
 
-    // 예제 보기 버튼
+    // 초기화 버튼 (모달)
+    clearBtnModal.addEventListener('click', () => {
+        if (confirm('작성한 코드를 모두 지우시겠습니까?')) {
+            codeEditor.value = '';
+            codeEditorModal.value = '';
+            wireframeRenderer.canvas.innerHTML = '';
+        }
+    });
+
+    // 예제 보기 버튼 (메인)
     exampleBtn.addEventListener('click', () => {
         codeEditor.value = EXAMPLE_CODE;
+        codeEditorModal.value = EXAMPLE_CODE;
+        // 자동으로 렌더링
+        const parsedData = wireframeParser.parse(EXAMPLE_CODE);
+        wireframeRenderer.render(parsedData);
+    });
+
+    // 예제 보기 버튼 (모달)
+    exampleBtnModal.addEventListener('click', () => {
+        codeEditor.value = EXAMPLE_CODE;
+        codeEditorModal.value = EXAMPLE_CODE;
         // 자동으로 렌더링
         const parsedData = wireframeParser.parse(EXAMPLE_CODE);
         wireframeRenderer.render(parsedData);
@@ -411,7 +497,7 @@ document.addEventListener('DOMContentLoaded', () => {
         wireframeRenderer.exportAsImage();
     });
 
-    // Ctrl+Enter로 렌더링
+    // Ctrl+Enter로 렌더링 (메인 에디터)
     codeEditor.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
             e.preventDefault();
@@ -419,8 +505,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Ctrl+Enter로 렌더링 (모달 에디터)
+    codeEditorModal.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            renderBtnModal.click();
+        }
+    });
+
+    // 컴포넌트 갤러리 클릭 시 현재 뷰 모드에 따라 코드 삽입
+    const originalGalleryItems = document.getElementById('galleryItems');
+    originalGalleryItems.addEventListener('click', (e) => {
+        const card = e.target.closest('.component-card');
+        if (card) {
+            const viewMode = document.body.className.match(/view-(\w+)/)?.[1];
+            if (viewMode === 'both') {
+                // 둘다보기 모드에서는 모달 에디터에도 동일하게 삽입
+                syncCodeToModal();
+            }
+        }
+    });
+
     // 페이지 로드 시 예제 표시
     codeEditor.value = EXAMPLE_CODE;
+    codeEditorModal.value = EXAMPLE_CODE;
     const parsedData = wireframeParser.parse(EXAMPLE_CODE);
     wireframeRenderer.render(parsedData);
+
+    // 초기 뷰 모드 설정 (둘다보기)
+    setViewMode('both');
 });
