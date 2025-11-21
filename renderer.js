@@ -355,8 +355,15 @@ class WireframeRenderer {
                 // z-index 자동 할당 (겹침 허용)
                 rendered.style.zIndex = this.zIndexCounter++;
 
+                // wf-element 클래스 추가 (리사이즈 핸들 스타일용)
+                rendered.classList.add('wf-element');
+
                 // 드래그 가능하도록 설정
                 this.makeDraggable(rendered, element, i);
+
+                // 리사이즈 가능하도록 설정
+                this.makeResizable(rendered, element, i);
+
                 wrapper.appendChild(rendered);
             }
         }
@@ -440,6 +447,119 @@ class WireframeRenderer {
         domElement.addEventListener('mouseleave', () => {
             domElement.style.outline = 'none';
         });
+    }
+
+    // 요소를 리사이즈 가능하게 만들기
+    makeResizable(domElement, dataElement, index) {
+        // 리사이즈 핸들 생성
+        const handles = [
+            { name: 'top-left', classes: 'corner top-left' },
+            { name: 'top-right', classes: 'corner top-right' },
+            { name: 'bottom-left', classes: 'corner bottom-left' },
+            { name: 'bottom-right', classes: 'corner bottom-right' },
+            { name: 'top', classes: 'edge top' },
+            { name: 'bottom', classes: 'edge bottom' },
+            { name: 'left', classes: 'edge left' },
+            { name: 'right', classes: 'edge right' }
+        ];
+
+        handles.forEach(handleConfig => {
+            const handle = document.createElement('div');
+            handle.className = 'resize-handle ' + handleConfig.classes;
+            handle.dataset.direction = handleConfig.name;
+
+            // 리사이즈 핸들 클릭 시 드래그 방지
+            handle.setAttribute('draggable', 'false');
+
+            // 마우스다운 이벤트
+            handle.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                // 드래그 비활성화
+                domElement.setAttribute('draggable', 'false');
+                domElement.classList.add('resizing');
+
+                const startX = e.clientX;
+                const startY = e.clientY;
+                const startWidth = dataElement.props.width || 100;
+                const startHeight = dataElement.props.height || 100;
+                const startLeft = dataElement.props.x || 0;
+                const startTop = dataElement.props.y || 0;
+                const direction = handleConfig.name;
+
+                const onMouseMove = (e) => {
+                    const deltaX = e.clientX - startX;
+                    const deltaY = e.clientY - startY;
+
+                    let newWidth = startWidth;
+                    let newHeight = startHeight;
+                    let newX = startLeft;
+                    let newY = startTop;
+
+                    // 방향에 따라 크기 조절
+                    if (direction.includes('right')) {
+                        newWidth = Math.max(20, startWidth + deltaX);
+                    }
+                    if (direction.includes('left')) {
+                        newWidth = Math.max(20, startWidth - deltaX);
+                        newX = startLeft + (startWidth - newWidth);
+                    }
+                    if (direction.includes('bottom')) {
+                        newHeight = Math.max(20, startHeight + deltaY);
+                    }
+                    if (direction.includes('top')) {
+                        newHeight = Math.max(20, startHeight - deltaY);
+                        newY = startTop + (startHeight - newHeight);
+                    }
+
+                    // 실시간 업데이트
+                    domElement.style.width = newWidth + 'px';
+                    domElement.style.height = newHeight + 'px';
+
+                    if (newX !== startLeft) {
+                        domElement.style.left = newX + 'px';
+                    }
+                    if (newY !== startTop) {
+                        domElement.style.top = newY + 'px';
+                    }
+                };
+
+                const onMouseUp = (e) => {
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+
+                    domElement.classList.remove('resizing');
+                    domElement.setAttribute('draggable', 'true');
+
+                    // 최종 크기와 위치 가져오기
+                    const finalWidth = parseInt(domElement.style.width);
+                    const finalHeight = parseInt(domElement.style.height);
+                    const finalX = parseInt(domElement.style.left);
+                    const finalY = parseInt(domElement.style.top);
+
+                    // 코드 업데이트
+                    this.updateElementSize(index, finalWidth, finalHeight, finalX, finalY);
+                };
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+
+            domElement.appendChild(handle);
+        });
+    }
+
+    // 요소 크기 및 위치 업데이트
+    updateElementSize(index, width, height, x, y) {
+        if (!this.currentData || !this.currentData.elements[index]) return;
+
+        const element = this.currentData.elements[index];
+
+        // 코드 업데이트 콜백 호출
+        if (this.onCodeUpdate) {
+            this.onCodeUpdate('resize', { element, index, width, height, x, y });
+        }
     }
 
     // 요소 위치 업데이트

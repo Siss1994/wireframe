@@ -668,6 +668,110 @@ function updateCodeWithPosition(element, index, newX, newY) {
     }
 }
 
+function updateCodeWithSize(element, index, width, height, x, y) {
+    const codeEditor = document.getElementById('codeEditor');
+    const codeEditorModal = document.getElementById('codeEditorModal');
+    const lines = codeEditor.value.split('\n');
+
+    // 해당 요소의 코드 블록 찾기
+    let blockStart = -1;
+    let blockEnd = -1;
+    let blockCount = 0;
+    let inBlock = false;
+    let braceDepth = 0;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+
+        // 블록 시작 감지
+        if (!inBlock && line && !line.startsWith('//')) {
+            if (line.includes('{')) {
+                if (blockCount === index) {
+                    blockStart = i;
+                    inBlock = true;
+                    braceDepth = 1;
+                } else {
+                    blockCount++;
+                }
+            }
+        } else if (inBlock) {
+            if (line.includes('{')) braceDepth++;
+            if (line.includes('}')) {
+                braceDepth--;
+                if (braceDepth === 0) {
+                    blockEnd = i;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (blockStart === -1 || blockEnd === -1) {
+        console.error('Could not find element block in code');
+        return;
+    }
+
+    // width, height, x, y 값 업데이트
+    let widthUpdated = false;
+    let heightUpdated = false;
+    let xUpdated = false;
+    let yUpdated = false;
+
+    for (let i = blockStart + 1; i < blockEnd; i++) {
+        const line = lines[i];
+        if (line.includes('width:')) {
+            lines[i] = line.replace(/width:\s*\d+/, `width: ${width}`);
+            widthUpdated = true;
+        } else if (line.includes('height:')) {
+            lines[i] = line.replace(/height:\s*\d+/, `height: ${height}`);
+            heightUpdated = true;
+        } else if (line.includes('x:')) {
+            lines[i] = line.replace(/x:\s*\d+/, `x: ${x}`);
+            xUpdated = true;
+        } else if (line.includes('y:')) {
+            lines[i] = line.replace(/y:\s*\d+/, `y: ${y}`);
+            yUpdated = true;
+        }
+    }
+
+    // 값이 없으면 추가
+    const indent = '  ';
+    const updates = [];
+
+    if (!xUpdated || !yUpdated || !widthUpdated || !heightUpdated) {
+        if (!xUpdated && !yUpdated) {
+            updates.push(`${indent}x: ${x}, y: ${y}`);
+        } else {
+            if (!xUpdated) updates.push(`${indent}x: ${x}`);
+            if (!yUpdated) updates.push(`${indent}y: ${y}`);
+        }
+
+        if (!widthUpdated && !heightUpdated) {
+            updates.push(`${indent}width: ${width}, height: ${height}`);
+        } else {
+            if (!widthUpdated) updates.push(`${indent}width: ${width}`);
+            if (!heightUpdated) updates.push(`${indent}height: ${height}`);
+        }
+
+        // 블록 시작 다음에 삽입
+        updates.reverse().forEach(update => {
+            lines.splice(blockStart + 1, 0, update);
+        });
+    }
+
+    const newCode = lines.join('\n');
+    codeEditor.value = newCode;
+    codeEditorModal.value = newCode;
+
+    // 자동 렌더링
+    try {
+        const parsedData = wireframeParser.parse(newCode);
+        wireframeRenderer.render(parsedData);
+    } catch (error) {
+        console.error('Failed to render after resize:', error);
+    }
+}
+
 function addCodeToEditor(code) {
     const codeEditor = document.getElementById('codeEditor');
     const codeEditorModal = document.getElementById('codeEditorModal');
@@ -723,6 +827,8 @@ document.addEventListener('DOMContentLoaded', () => {
             updateCodeWithPosition(data.element, data.index, data.newX, data.newY);
         } else if (action === 'add') {
             addCodeToEditor(data);
+        } else if (action === 'resize') {
+            updateCodeWithSize(data.element, data.index, data.width, data.height, data.x, data.y);
         }
     };
 

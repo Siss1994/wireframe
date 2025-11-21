@@ -1178,3 +1178,104 @@ summary:hover {
     align-items: center;
     font-size: 14px;
 }
+
+/* ===== 리사이즈 핸들 ===== */
+.resize-handle {
+    position: absolute;
+    background: #3498db;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 10;
+}
+
+.wf-element:hover .resize-handle {
+    opacity: 0.8;
+}
+
+.resize-handle:hover {
+    opacity: 1 !important;
+    background: #2980b9;
+}
+
+/* 모서리 핸들 (8x8px) */
+.resize-handle.corner {
+    width: 8px;
+    height: 8px;
+    border: 1px solid white;
+    border-radius: 50%;
+}
+
+.resize-handle.top-left {
+    top: -4px;
+    left: -4px;
+    cursor: nw-resize;
+}
+
+.resize-handle.top-right {
+    top: -4px;
+    right: -4px;
+    cursor: ne-resize;
+}
+
+.resize-handle.bottom-left {
+    bottom: -4px;
+    left: -4px;
+    cursor: sw-resize;
+}
+
+.resize-handle.bottom-right {
+    bottom: -4px;
+    right: -4px;
+    cursor: se-resize;
+}
+
+/* 가장자리 핸들 */
+.resize-handle.edge {
+    background: #3498db;
+}
+
+.resize-handle.top {
+    top: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 4px;
+    cursor: n-resize;
+}
+
+.resize-handle.bottom {
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 4px;
+    cursor: s-resize;
+}
+
+.resize-handle.left {
+    left: -2px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 20px;
+    cursor: w-resize;
+}
+
+.resize-handle.right {
+    right: -2px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 20px;
+    cursor: e-resize;
+}
+
+/* 리사이즈 중 */
+.resizing {
+    outline: 2px solid #3498db !important;
+    user-select: none;
+}
+
+.resizing .resize-handle {
+    opacity: 1 !important;
+}
