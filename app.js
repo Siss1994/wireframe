@@ -507,9 +507,27 @@ function renderComponentGallery() {
             <div class="component-tooltip">
                 <div class="tooltip-title">${component.name}</div>
                 <div class="tooltip-props">속성: ${component.props}</div>
-                <div class="tooltip-props" style="margin-top: 5px; font-style: italic;">클릭하여 예제 삽입</div>
+                <div class="tooltip-props" style="margin-top: 5px; font-style: italic;">드래그 또는 클릭하여 추가</div>
             </div>
         `;
+
+        // 드래그 가능하도록 설정
+        card.setAttribute('draggable', 'true');
+        card.style.cursor = 'grab';
+
+        // 드래그 시작
+        card.addEventListener('dragstart', (e) => {
+            card.style.cursor = 'grabbing';
+            e.dataTransfer.effectAllowed = 'copy';
+            e.dataTransfer.setData('component', JSON.stringify(component));
+            card.style.opacity = '0.5';
+        });
+
+        // 드래그 종료
+        card.addEventListener('dragend', () => {
+            card.style.cursor = 'grab';
+            card.style.opacity = '1';
+        });
 
         // 클릭 이벤트: 에디터에 예제 코드 삽입
         card.addEventListener('click', () => {
@@ -559,6 +577,112 @@ function renderComponentGallery() {
     updateNavButtons();
 }
 
+// 코드 업데이트 헬퍼 함수
+function updateCodeWithPosition(element, index, newX, newY) {
+    const codeEditor = document.getElementById('codeEditor');
+    const codeEditorModal = document.getElementById('codeEditorModal');
+    const lines = codeEditor.value.split('\n');
+
+    // 해당 요소의 코드 블록 찾기
+    let blockStart = -1;
+    let blockEnd = -1;
+    let blockCount = 0;
+    let inBlock = false;
+    let braceDepth = 0;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+
+        // 블록 시작 감지
+        if (!inBlock && line && !line.startsWith('//')) {
+            if (line.includes('{')) {
+                if (blockCount === index) {
+                    blockStart = i;
+                    inBlock = true;
+                    braceDepth = 1;
+                } else {
+                    blockCount++;
+                }
+            }
+        } else if (inBlock) {
+            if (line.includes('{')) braceDepth++;
+            if (line.includes('}')) {
+                braceDepth--;
+                if (braceDepth === 0) {
+                    blockEnd = i;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (blockStart === -1 || blockEnd === -1) {
+        console.error('Could not find element block in code');
+        return;
+    }
+
+    // x, y 값 업데이트
+    let xUpdated = false;
+    let yUpdated = false;
+
+    for (let i = blockStart + 1; i < blockEnd; i++) {
+        const line = lines[i];
+        if (line.includes('x:')) {
+            lines[i] = line.replace(/x:\s*\d+/, `x: ${newX}`);
+            xUpdated = true;
+        } else if (line.includes('y:')) {
+            lines[i] = line.replace(/y:\s*\d+/, `y: ${newY}`);
+            yUpdated = true;
+        }
+    }
+
+    // x, y가 없으면 추가
+    if (!xUpdated || !yUpdated) {
+        const indent = '  ';
+        const positionLine = `${indent}x: ${newX}, y: ${newY}`;
+        lines.splice(blockStart + 1, 0, positionLine);
+    }
+
+    const newCode = lines.join('\n');
+    codeEditor.value = newCode;
+    codeEditorModal.value = newCode;
+}
+
+function addCodeToEditor(code) {
+    const codeEditor = document.getElementById('codeEditor');
+    const codeEditorModal = document.getElementById('codeEditorModal');
+
+    // 코드 끝에 추가 (footer 전에)
+    const lines = codeEditor.value.split('\n');
+    let insertIndex = lines.length;
+
+    // footer를 찾아서 그 앞에 삽입
+    for (let i = lines.length - 1; i >= 0; i--) {
+        if (lines[i].includes('footer')) {
+            // footer 블록 시작 찾기
+            insertIndex = i;
+            // 빈 줄과 주석 건너뛰기
+            while (insertIndex > 0 && (lines[insertIndex - 1].trim() === '' || lines[insertIndex - 1].trim().startsWith('//'))) {
+                insertIndex--;
+            }
+            break;
+        }
+    }
+
+    lines.splice(insertIndex, 0, '', code);
+    const newCode = lines.join('\n');
+    codeEditor.value = newCode;
+    codeEditorModal.value = newCode;
+
+    // 자동 렌더링
+    try {
+        const parsedData = wireframeParser.parse(newCode);
+        wireframeRenderer.render(parsedData);
+    } catch (error) {
+        console.error('Failed to render after adding component:', error);
+    }
+}
+
 // 앱 초기화
 document.addEventListener('DOMContentLoaded', () => {
     wireframeRenderer = new WireframeRenderer('canvas');
@@ -572,6 +696,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearBtn = document.getElementById('clearBtn');
     const exampleBtn = document.getElementById('exampleBtn');
     const exportBtn = document.getElementById('exportBtn');
+
+    // 코드 업데이트 콜백 설정
+    wireframeRenderer.onCodeUpdate = (action, data) => {
+        if (action === 'move') {
+            updateCodeWithPosition(data.element, data.index, data.newX, data.newY);
+        } else if (action === 'add') {
+            addCodeToEditor(data);
+        }
+    };
 
     // 뷰 모드 토글 요소들
     const viewCodeBtn = document.getElementById('viewCodeBtn');

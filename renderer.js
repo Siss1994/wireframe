@@ -6,11 +6,89 @@
 class WireframeRenderer {
     constructor(canvasId) {
         this.canvas = document.getElementById(canvasId);
+        this.currentData = null; // 현재 렌더링된 데이터 저장
+        this.draggedElement = null; // 드래그 중인 요소
+        this.onCodeUpdate = null; // 코드 업데이트 콜백
+        this.setupCanvasDragDrop();
+    }
+
+    // 캔버스 드래그 앤 드롭 설정
+    setupCanvasDragDrop() {
+        this.canvas.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        });
+
+        this.canvas.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const wrapper = this.canvas.querySelector('.wireframe-wrapper');
+            if (!wrapper) return;
+
+            const rect = wrapper.getBoundingClientRect();
+            const x = Math.round(e.clientX - rect.left);
+            const y = Math.round(e.clientY - rect.top);
+
+            // 컴포넌트 갤러리에서 드래그한 경우
+            const componentData = e.dataTransfer.getData('component');
+            if (componentData) {
+                try {
+                    const component = JSON.parse(componentData);
+                    this.addNewComponent(component, x, y);
+                } catch (err) {
+                    console.error('Failed to add component:', err);
+                }
+            }
+        });
+    }
+
+    // 새 컴포넌트 추가
+    addNewComponent(component, x, y) {
+        if (!this.currentData) return;
+
+        // 예제 코드를 파싱하여 속성 추출
+        const lines = component.example.split('\n');
+        let code = lines[0]; // 첫 줄 (컴포넌트 타입과 라벨)
+
+        // x, y 값을 추가/수정
+        let hasPosition = false;
+        let newLines = [lines[0]];
+
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i];
+            if (line.includes('x:') || line.includes('y:')) {
+                hasPosition = true;
+            }
+            newLines.push(line);
+        }
+
+        // x, y가 없으면 추가
+        if (!hasPosition) {
+            // 두 번째 줄에 x, y 추가
+            newLines.splice(1, 0, `  x: ${x}, y: ${y}`);
+        } else {
+            // 기존 x, y 값 대체
+            newLines = newLines.map(line => {
+                if (line.includes('x:')) {
+                    return line.replace(/x:\s*\d+/, `x: ${x}`);
+                } else if (line.includes('y:')) {
+                    return line.replace(/y:\s*\d+/, `y: ${y}`);
+                }
+                return line;
+            });
+        }
+
+        const newCode = newLines.join('\n');
+
+        // 코드 업데이트 콜백 호출
+        if (this.onCodeUpdate) {
+            this.onCodeUpdate('add', newCode);
+        }
     }
 
     render(data) {
         // 캔버스 초기화
         this.canvas.innerHTML = '';
+        this.currentData = data;
 
         // 와이어프레임을 담을 wrapper 생성
         const wrapper = document.createElement('div');
@@ -35,15 +113,82 @@ class WireframeRenderer {
         }
 
         // 각 요소 렌더링
-        for (const element of data.elements) {
+        for (let i = 0; i < data.elements.length; i++) {
+            const element = data.elements[i];
             const rendered = this.renderElement(element);
             if (rendered) {
+                // 드래그 가능하도록 설정
+                this.makeDraggable(rendered, element, i);
                 wrapper.appendChild(rendered);
             }
         }
 
         // wrapper를 캔버스에 추가
         this.canvas.appendChild(wrapper);
+    }
+
+    // 요소를 드래그 가능하게 만들기
+    makeDraggable(domElement, dataElement, index) {
+        domElement.setAttribute('draggable', 'true');
+        domElement.style.cursor = 'move';
+        domElement.dataset.elementIndex = index;
+
+        // 드래그 시작
+        domElement.addEventListener('dragstart', (e) => {
+            this.draggedElement = {
+                domElement: domElement,
+                dataElement: dataElement,
+                index: index,
+                startX: dataElement.props.x || 0,
+                startY: dataElement.props.y || 0,
+                offsetX: e.offsetX,
+                offsetY: e.offsetY
+            };
+            domElement.style.opacity = '0.5';
+            e.dataTransfer.effectAllowed = 'move';
+        });
+
+        // 드래그 종료
+        domElement.addEventListener('dragend', (e) => {
+            domElement.style.opacity = '1';
+
+            if (this.draggedElement) {
+                const wrapper = this.canvas.querySelector('.wireframe-wrapper');
+                const rect = wrapper.getBoundingClientRect();
+
+                // 새 위치 계산
+                const newX = Math.round(e.clientX - rect.left - this.draggedElement.offsetX);
+                const newY = Math.round(e.clientY - rect.top - this.draggedElement.offsetY);
+
+                // 위치가 실제로 변경된 경우에만 업데이트
+                if (newX !== this.draggedElement.startX || newY !== this.draggedElement.startY) {
+                    this.updateElementPosition(this.draggedElement.index, newX, newY);
+                }
+
+                this.draggedElement = null;
+            }
+        });
+
+        // 호버 효과
+        domElement.addEventListener('mouseenter', () => {
+            domElement.style.outline = '2px dashed #3498db';
+        });
+
+        domElement.addEventListener('mouseleave', () => {
+            domElement.style.outline = 'none';
+        });
+    }
+
+    // 요소 위치 업데이트
+    updateElementPosition(index, newX, newY) {
+        if (!this.currentData || !this.currentData.elements[index]) return;
+
+        const element = this.currentData.elements[index];
+
+        // 코드 업데이트 콜백 호출
+        if (this.onCodeUpdate) {
+            this.onCodeUpdate('move', { element, index, newX, newY });
+        }
     }
 
     renderElement(element) {
