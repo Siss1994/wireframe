@@ -3,103 +3,233 @@
  */
 
 // 예제 와이어프레임 코드
-const EXAMPLE_CODE = `// 랜딩 페이지 예제
-page "랜딩 페이지" {
-  width: 1200
-  height: 1000
+const EXAMPLE_CODE = `// 대시보드 예제 - 다양한 컴포넌트 데모
+page "관리자 대시보드" {
+  width: 1400
+  height: 1800
 }
 
-// 네비게이션 바
-navbar {
-  height: 60
-  items: ["홈", "기능", "가격", "고객사례", "문의하기"]
-}
-
-// 헤더 섹션
-container "Hero Section" {
+// 상단 헤더
+header "Dashboard" {
   x: 0
-  y: 60
-  width: 1200
-  height: 400
-  background: #3498db
+  y: 0
+  width: 1400
+  height: 70
 }
 
-text "서비스 타이틀" {
-  x: 100
-  y: 150
-  size: 48
-  color: #ffffff
+avatar "👨" {
+  x: 1300
+  y: 18
+  size: 34
 }
 
-text "서브 타이틀 설명" {
-  x: 100
-  y: 220
-  size: 20
-  color: #ecf0f1
+// 사이드바
+sidebar "메뉴" {
+  x: 0
+  y: 70
+  width: 250
+  height: 1730
 }
 
-button "시작하기" {
-  x: 100
-  y: 280
-  width: 150
-  height: 50
+menu {
+  x: 10
+  y: 90
+  width: 230
+  height: 250
+  items: ["대시보드", "사용자", "설정", "분석", "리포트"]
 }
 
-button "더 알아보기" {
+// 브레드크럼
+breadcrumb {
   x: 270
-  y: 280
-  width: 150
-  height: 50
+  y: 85
+  items: ["홈", "대시보드", "개요"]
 }
 
-// 이미지 영역
-image "Hero 이미지" {
-  x: 700
+// 알림
+alert "새로운 업데이트가 있습니다!" {
+  x: 270
   y: 120
-  width: 400
+  width: 1100
+  type: info
+}
+
+// 통계 카드들
+card "총 사용자" {
+  x: 270
+  y: 200
+  width: 250
+  height: 120
+}
+
+card "신규 가입" {
+  x: 540
+  y: 200
+  width: 250
+  height: 120
+}
+
+card "활성 세션" {
+  x: 810
+  y: 200
+  width: 250
+  height: 120
+}
+
+card "수익" {
+  x: 1080
+  y: 200
+  width: 290
+  height: 120
+}
+
+// 차트
+chart "월별 매출" {
+  x: 270
+  y: 340
+  width: 630
   height: 300
+  type: bar
 }
 
-// 기능 섹션
-container "Features" {
-  x: 0
-  y: 480
-  width: 1200
-  height: 80
-  background: #ecf0f1
+chart "사용자 성장" {
+  x: 920
+  y: 340
+  width: 450
+  height: 300
+  type: line
 }
 
-text "주요 기능" {
-  x: 500
-  y: 510
-  size: 32
+// 프로그레스 바
+text "서버 사용량" {
+  x: 270
+  y: 670
+  size: 16
   color: #2c3e50
 }
 
-// 그리드 레이아웃
-grid {
-  x: 50
-  y: 600
+progress {
+  x: 270
+  y: 700
+  width: 500
+  value: 75
+}
+
+text "저장공간" {
+  x: 800
+  y: 670
+  size: 16
+  color: #2c3e50
+}
+
+progress {
+  x: 800
+  y: 700
+  width: 500
+  value: 45
+}
+
+// 탭
+tabs {
+  x: 270
+  y: 750
   width: 1100
-  columns: 3
-  gap: 30
-  items: 6
+  items: ["전체", "활성", "대기중", "완료"]
 }
 
-// 푸터
-container "Footer" {
+// 테이블
+table {
+  x: 270
+  y: 800
+  width: 1100
+  height: 400
+  rows: 8
+  columns: 5
+}
+
+// 페이지네이션
+pagination {
+  x: 270
+  y: 1220
+  pages: 5
+}
+
+// 폼 요소 섹션
+container "설정" {
+  x: 270
+  y: 1280
+  width: 530
+  height: 480
+  background: #ffffff
+}
+
+text "알림 설정" {
+  x: 290
+  y: 1300
+  size: 18
+  color: #2c3e50
+}
+
+checkbox "이메일 알림 받기" {
+  x: 290
+  y: 1340
+}
+
+checkbox "SMS 알림 받기" {
+  x: 290
+  y: 1380
+}
+
+radio "옵션 A" {
+  x: 290
+  y: 1430
+}
+
+radio "옵션 B" {
+  x: 290
+  y: 1460
+}
+
+dropdown "카테고리 선택" {
+  x: 290
+  y: 1510
+  width: 300
+}
+
+input "이메일 주소" {
+  x: 290
+  y: 1570
+  width: 300
+}
+
+textarea "피드백" {
+  x: 290
+  y: 1630
+  width: 480
+  height: 100
+}
+
+// 미디어 및 기타
+video "튜토리얼 비디오" {
+  x: 820
+  y: 1280
+  width: 550
+  height: 310
+}
+
+map "위치" {
+  x: 820
+  y: 1610
+  width: 550
+  height: 150
+}
+
+// 하단 푸터
+footer "© 2024 WireFrame Builder" {
   x: 0
-  y: 920
-  width: 1200
-  height: 80
-  background: #2c3e50
-}
-
-text "© 2024 Your Company" {
-  x: 500
-  y: 950
-  size: 14
-  color: #ffffff
+  y: 1800
+  width: 1400
+  height: 60
 }`;
 
 // 앱 초기화

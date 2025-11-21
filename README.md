@@ -9,6 +9,7 @@
 - 🤖 **AI 친화적**: 간단한 DSL로 AI가 쉽게 생성 가능
 - ⚡ **실시간 피드백**: 코드 변경 시 즉시 렌더링
 - 📱 **반응형**: 다양한 화면 크기 지원
+- 🎯 **35+ 컴포넌트**: 폼, 레이아웃, 네비게이션, 데이터, 차트 등 다양한 UI 요소
 
 ## 사용 방법
 
@@ -17,91 +18,105 @@
 3. "렌더링" 버튼을 클릭하거나 `Ctrl+Enter`를 누릅니다
 4. 오른쪽 미리보기 영역에서 결과를 확인합니다
 
-## 문법 가이드
+## 지원하는 컴포넌트 (35개)
 
-### 페이지 설정
+### 기본 컴포넌트 (7개)
+- `page` - 페이지 설정
+- `container` - 컨테이너/섹션
+- `button` - 버튼
+- `text` - 텍스트
+- `input` - 입력 필드
+- `image` - 이미지 플레이스홀더
+- `grid` - 그리드 레이아웃
 
-```
-page "페이지 제목" {
+### 폼 요소 (6개)
+- `checkbox` - 체크박스
+- `radio` - 라디오 버튼
+- `dropdown` - 드롭다운 선택
+- `textarea` - 텍스트 영역
+- `toggle` - 토글 스위치
+- `slider` - 슬라이더
+
+### 레이아웃 (5개)
+- `card` - 카드
+- `sidebar` - 사이드바
+- `header` - 헤더
+- `footer` - 푸터
+- `modal` - 모달
+
+### 네비게이션 (5개)
+- `navbar` - 네비게이션 바
+- `tabs` - 탭
+- `breadcrumb` - 브레드크럼
+- `pagination` - 페이지네이션
+- `menu` - 메뉴
+
+### 데이터 표시 (2개)
+- `table` - 테이블
+- `list` - 리스트
+
+### 피드백 (3개)
+- `alert` - 알림 (info, success, warning, error)
+- `badge` - 배지
+- `progress` - 프로그레스 바
+
+### 미디어 (2개)
+- `video` - 비디오 플레이스홀더
+- `icon` - 아이콘
+
+### 차트/맵 (2개)
+- `chart` - 차트 (bar, line, pie)
+- `map` - 지도
+
+### 기타 (3개)
+- `divider` - 구분선
+- `avatar` - 아바타
+- `tooltip` - 툴팁
+
+## 간단한 예제
+
+```wireframe
+page "마이페이지" {
   width: 1200
   height: 800
 }
-```
 
-### 컨테이너
-
-```
-container "컨테이너명" {
+header "My Dashboard" {
   x: 0
   y: 0
   width: 1200
-  height: 100
-  background: #f0f0f0
+  height: 70
 }
-```
 
-### 버튼
-
-```
-button "버튼 텍스트" {
-  x: 50
-  y: 50
-  width: 120
-  height: 40
+sidebar "메뉴" {
+  x: 0
+  y: 70
+  width: 250
+  height: 730
 }
-```
 
-### 텍스트
-
-```
-text "텍스트 내용" {
-  x: 50
-  y: 100
-  size: 16
-  color: #333
-}
-```
-
-### 입력 필드
-
-```
-input "placeholder 텍스트" {
-  x: 50
-  y: 150
-  width: 200
-  height: 40
-}
-```
-
-### 이미지
-
-```
-image "이미지 설명" {
-  x: 50
-  y: 200
+card "통계" {
+  x: 270
+  y: 90
   width: 300
   height: 200
 }
-```
 
-### 네비게이션 바
-
-```
-navbar {
-  height: 60
-  items: ["홈", "소개", "서비스", "연락처"]
+chart "월별 데이터" {
+  x: 600
+  y: 90
+  width: 570
+  height: 300
+  type: bar
 }
-```
 
-### 그리드 레이아웃
-
-```
-grid {
-  x: 50
-  y: 300
-  columns: 3
-  gap: 20
-  items: 6
+table {
+  x: 270
+  y: 410
+  width: 900
+  height: 350
+  rows: 6
+  columns: 4
 }
 ```
 

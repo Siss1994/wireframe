@@ -271,3 +271,430 @@ summary:hover {
     border-radius: 4px;
     margin: 10px;
 }
+
+/* ===== 폼 요소 ===== */
+.wf-checkbox-wrapper,
+.wf-radio-wrapper {
+    position: absolute;
+    display: flex;
+    align-items: center;
+}
+
+.wf-checkbox {
+    border: 2px solid #95a5a6;
+    background: white;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.wf-checkbox::after {
+    content: '✓';
+    display: block;
+    text-align: center;
+    color: #3498db;
+    font-size: 14px;
+    line-height: 16px;
+}
+
+.wf-radio {
+    border: 2px solid #95a5a6;
+    background: white;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.wf-radio::after {
+    content: '';
+    display: block;
+    width: 50%;
+    height: 50%;
+    margin: 25%;
+    background: #3498db;
+    border-radius: 50%;
+}
+
+.wf-dropdown {
+    position: absolute;
+    border: 2px solid #95a5a6;
+    background: white;
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+    border-radius: 4px;
+    color: #7f8c8d;
+}
+
+.wf-textarea {
+    position: absolute;
+    border: 2px solid #95a5a6;
+    background: white;
+    padding: 10px;
+    color: #7f8c8d;
+    border-radius: 4px;
+    overflow: auto;
+}
+
+.wf-toggle {
+    position: absolute;
+    background: #95a5a6;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.wf-toggle-knob {
+    width: 40%;
+    height: 80%;
+    background: white;
+    border-radius: 50%;
+    margin-left: 5%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.wf-slider {
+    position: absolute;
+    background: #ecf0f1;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.wf-slider::after {
+    content: '';
+    width: 50%;
+    height: 60%;
+    background: #3498db;
+    border-radius: 10px;
+    margin-left: 5%;
+}
+
+/* ===== 레이아웃 요소 ===== */
+.wf-card {
+    position: absolute;
+    background: white;
+    border: 2px solid #bdc3c7;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.wf-card-title {
+    padding: 15px;
+    background: #ecf0f1;
+    font-weight: bold;
+    border-bottom: 2px solid #bdc3c7;
+}
+
+.wf-card-content {
+    padding: 15px;
+    color: #7f8c8d;
+}
+
+.wf-sidebar {
+    position: absolute;
+    background: #ecf0f1;
+    border: 2px solid #bdc3c7;
+    border-radius: 4px;
+}
+
+.wf-header {
+    position: absolute;
+    color: white;
+    display: flex;
+    align-items: center;
+}
+
+.wf-footer {
+    position: absolute;
+    color: white;
+    display: flex;
+    align-items: center;
+}
+
+.wf-modal {
+    position: absolute;
+    background: white;
+    border: 3px solid #34495e;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.wf-modal-header {
+    padding: 15px 20px;
+    background: #34495e;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.wf-modal-content {
+    padding: 20px;
+    color: #7f8c8d;
+}
+
+/* ===== 네비게이션 ===== */
+.wf-tabs {
+    position: absolute;
+    display: flex;
+    background: #ecf0f1;
+    border: 2px solid #bdc3c7;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.wf-tab {
+    flex: 1;
+    padding: 10px 15px;
+    text-align: center;
+    cursor: pointer;
+    border-right: 2px solid #bdc3c7;
+    color: #7f8c8d;
+}
+
+.wf-tab:last-child {
+    border-right: none;
+}
+
+.wf-tab.active {
+    background: white;
+    color: #3498db;
+    font-weight: bold;
+}
+
+.wf-breadcrumb {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    color: #7f8c8d;
+    font-size: 14px;
+}
+
+.wf-breadcrumb-item {
+    cursor: pointer;
+}
+
+.wf-breadcrumb-item:hover {
+    color: #3498db;
+}
+
+.wf-pagination {
+    position: absolute;
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.wf-pagination-item {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #bdc3c7;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #7f8c8d;
+}
+
+.wf-pagination-item.active {
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
+}
+
+.wf-menu {
+    position: absolute;
+    background: white;
+    border: 2px solid #bdc3c7;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.wf-menu-item {
+    padding: 12px 15px;
+    border-bottom: 1px solid #ecf0f1;
+    cursor: pointer;
+    color: #7f8c8d;
+}
+
+.wf-menu-item:last-child {
+    border-bottom: none;
+}
+
+.wf-menu-item:hover {
+    background: #ecf0f1;
+}
+
+/* ===== 데이터 표시 ===== */
+.wf-table {
+    position: absolute;
+    background: white;
+    border: 2px solid #bdc3c7;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.wf-table-row {
+    display: flex;
+    border-bottom: 1px solid #ecf0f1;
+}
+
+.wf-table-row:last-child {
+    border-bottom: none;
+}
+
+.wf-table-row.header {
+    background: #ecf0f1;
+    font-weight: bold;
+}
+
+.wf-table-cell {
+    flex: 1;
+    padding: 10px;
+    border-right: 1px solid #ecf0f1;
+    text-align: center;
+    color: #7f8c8d;
+}
+
+.wf-table-cell:last-child {
+    border-right: none;
+}
+
+.wf-table-row.header .wf-table-cell {
+    color: #2c3e50;
+}
+
+.wf-list {
+    position: absolute;
+    background: white;
+    border: 2px solid #bdc3c7;
+    border-radius: 4px;
+    padding: 15px;
+}
+
+.wf-list-item {
+    padding: 8px 0;
+    color: #7f8c8d;
+}
+
+/* ===== 피드백 요소 ===== */
+.wf-alert {
+    position: absolute;
+    border-radius: 4px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.wf-alert.info {
+    background: #d6eaf8;
+    border: 2px solid #3498db;
+    color: #2874a6;
+}
+
+.wf-alert.success {
+    background: #d5f4e6;
+    border: 2px solid #27ae60;
+    color: #1e8449;
+}
+
+.wf-alert.warning {
+    background: #fef5e7;
+    border: 2px solid #f39c12;
+    color: #b9770e;
+}
+
+.wf-alert.error {
+    background: #fadbd8;
+    border: 2px solid #e74c3c;
+    color: #c0392b;
+}
+
+.wf-badge {
+    position: absolute;
+    background: #e74c3c;
+    color: white;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.wf-progress {
+    position: absolute;
+    background: #ecf0f1;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.wf-progress-bar {
+    height: 100%;
+    background: #3498db;
+    border-radius: 10px;
+}
+
+/* ===== 미디어 ===== */
+.wf-video {
+    position: absolute;
+    border: 2px dashed #95a5a6;
+    background: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #95a5a6;
+    border-radius: 4px;
+}
+
+.wf-icon {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ===== 차트/맵 ===== */
+.wf-chart,
+.wf-map {
+    position: absolute;
+    border: 2px dashed #95a5a6;
+    background: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #95a5a6;
+    border-radius: 4px;
+}
+
+/* ===== 기타 ===== */
+.wf-divider {
+    position: absolute;
+    background: #bdc3c7;
+}
+
+.wf-avatar {
+    position: absolute;
+    background: #95a5a6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.wf-tooltip {
+    position: absolute;
+    background: #34495e;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}

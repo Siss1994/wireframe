@@ -124,13 +124,57 @@ class WireframeParser {
 
     setDefaults(element) {
         const defaults = {
+            // 기존 컴포넌트
             container: { x: 0, y: 0, width: 300, height: 200, background: '#ecf0f1' },
             button: { x: 0, y: 0, width: 120, height: 40 },
             text: { x: 0, y: 0, size: 16, color: '#333' },
             input: { x: 0, y: 0, width: 200, height: 40 },
             image: { x: 0, y: 0, width: 300, height: 200 },
             navbar: { height: 60, items: [] },
-            grid: { x: 0, y: 0, columns: 3, gap: 20, items: 6 }
+            grid: { x: 0, y: 0, columns: 3, gap: 20, items: 6 },
+
+            // 폼 요소
+            checkbox: { x: 0, y: 0, width: 20, height: 20 },
+            radio: { x: 0, y: 0, width: 20, height: 20 },
+            dropdown: { x: 0, y: 0, width: 200, height: 40 },
+            textarea: { x: 0, y: 0, width: 300, height: 100 },
+            toggle: { x: 0, y: 0, width: 50, height: 25 },
+            slider: { x: 0, y: 0, width: 200, height: 30 },
+
+            // 레이아웃 요소
+            card: { x: 0, y: 0, width: 300, height: 200 },
+            sidebar: { x: 0, y: 0, width: 250, height: 600 },
+            header: { x: 0, y: 0, width: 1200, height: 80, background: '#34495e' },
+            footer: { x: 0, y: 0, width: 1200, height: 80, background: '#2c3e50' },
+            modal: { x: 300, y: 150, width: 600, height: 400 },
+
+            // 네비게이션
+            tabs: { x: 0, y: 0, width: 600, height: 40, items: [] },
+            breadcrumb: { x: 0, y: 0, width: 600, height: 30, items: [] },
+            pagination: { x: 0, y: 0, width: 400, height: 40, pages: 5 },
+            menu: { x: 0, y: 0, width: 200, height: 300, items: [] },
+
+            // 데이터 표시
+            table: { x: 0, y: 0, width: 600, height: 300, rows: 5, columns: 4 },
+            list: { x: 0, y: 0, width: 300, height: 200, items: [] },
+
+            // 피드백 요소
+            alert: { x: 0, y: 0, width: 400, height: 60, type: 'info' },
+            badge: { x: 0, y: 0, width: 60, height: 25 },
+            progress: { x: 0, y: 0, width: 300, height: 20, value: 50 },
+
+            // 미디어
+            video: { x: 0, y: 0, width: 640, height: 360 },
+            icon: { x: 0, y: 0, size: 24 },
+
+            // 차트/맵
+            chart: { x: 0, y: 0, width: 400, height: 300, type: 'bar' },
+            map: { x: 0, y: 0, width: 600, height: 400 },
+
+            // 기타
+            divider: { x: 0, y: 0, width: 600, height: 2 },
+            avatar: { x: 0, y: 0, size: 48 },
+            tooltip: { x: 0, y: 0, width: 150, height: 40 }
         };
 
         if (defaults[element.type]) {

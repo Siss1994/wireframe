@@ -40,68 +40,201 @@
         <div class="documentation">
             <details>
                 <summary>사용 방법 및 문법 가이드</summary>
-                <div class="doc-content">
+<div class="doc-content">
                     <h3>기본 문법</h3>
                     <pre><code>// 페이지 정의
 page "페이지 제목" {
   width: 1200
   height: 800
-}
+}</code></pre>
 
-// 컨테이너 (레이아웃)
+                    <h3>기본 컴포넌트</h3>
+                    <pre><code>// 컨테이너
 container "컨테이너명" {
-  x: 0
-  y: 0
-  width: 1200
-  height: 100
+  x: 0, y: 0, width: 300, height: 200
   background: #f0f0f0
 }
 
 // 버튼
 button "버튼 텍스트" {
-  x: 50
-  y: 50
-  width: 120
-  height: 40
+  x: 50, y: 50, width: 120, height: 40
 }
 
 // 텍스트
 text "텍스트 내용" {
-  x: 50
-  y: 100
-  size: 16
-  color: #333
+  x: 50, y: 100, size: 16, color: #333
 }
 
-// 입력 필드
-input "placeholder 텍스트" {
-  x: 50
-  y: 150
-  width: 200
-  height: 40
-}
-
-// 이미지 플레이스홀더
+// 이미지
 image "이미지 설명" {
-  x: 50
-  y: 200
-  width: 300
-  height: 200
+  x: 50, y: 200, width: 300, height: 200
+}</code></pre>
+
+                    <h3>폼 요소</h3>
+                    <pre><code>// 입력 필드
+input "placeholder" {
+  x: 50, y: 150, width: 200, height: 40
 }
 
-// 네비게이션
+// 체크박스
+checkbox "동의합니다" {
+  x: 50, y: 200
+}
+
+// 라디오 버튼
+radio "옵션 1" {
+  x: 50, y: 230
+}
+
+// 드롭다운
+dropdown "선택하세요" {
+  x: 50, y: 260, width: 200
+}
+
+// 텍스트영역
+textarea "내용 입력" {
+  x: 50, y: 310, width: 300, height: 100
+}
+
+// 토글 스위치
+toggle "알림 켜기" {
+  x: 50, y: 420, width: 50, height: 25
+}
+
+// 슬라이더
+slider {
+  x: 50, y: 460, width: 200
+}</code></pre>
+
+                    <h3>레이아웃 컴포넌트</h3>
+                    <pre><code>// 카드
+card "카드 제목" {
+  x: 50, y: 500, width: 300, height: 200
+}
+
+// 사이드바
+sidebar "메뉴" {
+  x: 0, y: 80, width: 250, height: 600
+}
+
+// 헤더
+header "사이트 헤더" {
+  x: 0, y: 0, width: 1200, height: 80
+}
+
+// 푸터
+footer "© 2024 Company" {
+  x: 0, y: 920, width: 1200, height: 80
+}
+
+// 모달
+modal "경고" {
+  x: 300, y: 150, width: 600, height: 400
+}</code></pre>
+
+                    <h3>네비게이션</h3>
+                    <pre><code>// 네비게이션 바
 navbar {
   height: 60
   items: ["홈", "소개", "서비스", "연락처"]
 }
 
-// 그리드 레이아웃
+// 탭
+tabs {
+  x: 50, y: 100, width: 600
+  items: ["탭1", "탭2", "탭3"]
+}
+
+// 브레드크럼
+breadcrumb {
+  x: 50, y: 150
+  items: ["홈", "카테고리", "현재페이지"]
+}
+
+// 페이지네이션
+pagination {
+  x: 50, y: 200, pages: 5
+}
+
+// 메뉴
+menu {
+  x: 50, y: 250, width: 200
+  items: ["항목1", "항목2", "항목3"]
+}</code></pre>
+
+                    <h3>데이터 표시</h3>
+                    <pre><code>// 그리드
 grid {
-  x: 50
-  y: 300
-  columns: 3
-  gap: 20
-  items: 6
+  x: 50, y: 300, columns: 3, gap: 20, items: 6
+}
+
+// 테이블
+table {
+  x: 50, y: 500, width: 600, height: 300
+  rows: 5, columns: 4
+}
+
+// 리스트
+list {
+  x: 50, y: 850
+  items: ["항목1", "항목2", "항목3"]
+}</code></pre>
+
+                    <h3>피드백 요소</h3>
+                    <pre><code>// 알림 (info, success, warning, error)
+alert "알림 메시지" {
+  x: 50, y: 1000, width: 400
+  type: info
+}
+
+// 배지
+badge "5" {
+  x: 150, y: 50, width: 30, height: 25
+}
+
+// 프로그레스 바
+progress {
+  x: 50, y: 1080, width: 300
+  value: 75
+}</code></pre>
+
+                    <h3>미디어</h3>
+                    <pre><code>// 비디오
+video "비디오 제목" {
+  x: 50, y: 1150, width: 640, height: 360
+}
+
+// 아이콘
+icon "⭐" {
+  x: 50, y: 1550, size: 32
+}</code></pre>
+
+                    <h3>차트 및 지도</h3>
+                    <pre><code>// 차트 (bar, line, pie)
+chart "매출 차트" {
+  x: 50, y: 1600, width: 400, height: 300
+  type: bar
+}
+
+// 지도
+map "위치 지도" {
+  x: 500, y: 1600, width: 600, height: 400
+}</code></pre>
+
+                    <h3>기타</h3>
+                    <pre><code>// 구분선
+divider {
+  x: 50, y: 2050, width: 600, height: 2
+}
+
+// 아바타
+avatar "👤" {
+  x: 50, y: 2100, size: 48
+}
+
+// 툴팁
+tooltip "도움말 텍스트" {
+  x: 150, y: 2100, width: 150
 }</code></pre>
 
                     <h3>예제</h3>
