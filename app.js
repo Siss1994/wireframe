@@ -658,6 +658,14 @@ function updateCodeWithPosition(element, index, newX, newY) {
     const newCode = lines.join('\n');
     codeEditor.value = newCode;
     codeEditorModal.value = newCode;
+
+    // 자동 렌더링
+    try {
+        const parsedData = wireframeParser.parse(newCode);
+        wireframeRenderer.render(parsedData);
+    } catch (error) {
+        console.error('Failed to render after position update:', error);
+    }
 }
 
 function addCodeToEditor(code) {
