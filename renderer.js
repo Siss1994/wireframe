@@ -12,12 +12,15 @@ class WireframeRenderer {
         // 캔버스 초기화
         this.canvas.innerHTML = '';
 
-        // 캔버스 크기 설정
-        this.canvas.style.width = data.page.width + 'px';
-        this.canvas.style.height = data.page.height + 'px';
-        this.canvas.style.position = 'relative';
-        this.canvas.style.background = 'white';
-        this.canvas.style.border = '1px solid #ddd';
+        // 와이어프레임을 담을 wrapper 생성
+        const wrapper = document.createElement('div');
+        wrapper.className = 'wireframe-wrapper';
+        wrapper.style.width = data.page.width + 'px';
+        wrapper.style.height = data.page.height + 'px';
+        wrapper.style.position = 'relative';
+        wrapper.style.background = 'white';
+        wrapper.style.border = '1px solid #ddd';
+        wrapper.style.margin = '0 auto';
 
         // 페이지 제목이 있으면 표시
         if (data.page.title) {
@@ -28,16 +31,19 @@ class WireframeRenderer {
             title.style.left = '10px';
             title.style.fontSize = '12px';
             title.style.color = '#999';
-            this.canvas.appendChild(title);
+            wrapper.appendChild(title);
         }
 
         // 각 요소 렌더링
         for (const element of data.elements) {
             const rendered = this.renderElement(element);
             if (rendered) {
-                this.canvas.appendChild(rendered);
+                wrapper.appendChild(rendered);
             }
         }
+
+        // wrapper를 캔버스에 추가
+        this.canvas.appendChild(wrapper);
     }
 
     renderElement(element) {
