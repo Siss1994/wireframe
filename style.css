@@ -1047,3 +1047,42 @@ summary:hover {
     align-items: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
+
+/* ===== 스냅 가이드라인 ===== */
+.snap-guideline {
+    position: absolute;
+    background: #e74c3c;
+    pointer-events: none;
+    z-index: 10000;
+    opacity: 0.8;
+}
+
+.snap-guideline.vertical {
+    width: 1px;
+    box-shadow: 0 0 3px rgba(231, 76, 60, 0.5);
+}
+
+.snap-guideline.horizontal {
+    height: 1px;
+    box-shadow: 0 0 3px rgba(231, 76, 60, 0.5);
+}
+
+/* 컨테이너 하이라이트 (드래그 오버 시) */
+.container-highlight {
+    outline: 2px solid #3498db !important;
+    background: rgba(52, 152, 219, 0.05) !important;
+}
+
+/* 드래그 중인 요소 */
+.dragging {
+    opacity: 0.5;
+    cursor: grabbing !important;
+}
+
+/* 그리드 가이드 (옵션) */
+.wireframe-wrapper.show-grid {
+    background-image:
+        linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+    background-size: 10px 10px;
+}

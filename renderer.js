@@ -9,6 +9,9 @@ class WireframeRenderer {
         this.currentData = null; // 현재 렌더링된 데이터 저장
         this.draggedElement = null; // 드래그 중인 요소
         this.onCodeUpdate = null; // 코드 업데이트 콜백
+        this.guidelines = []; // 가이드라인 배열
+        this.snapThreshold = 8; // 스냅 임계값 (픽셀)
+        this.gridSize = 10; // 그리드 크기
         this.setupCanvasDragDrop();
     }
 
@@ -17,10 +20,17 @@ class WireframeRenderer {
         this.canvas.addEventListener('dragover', (e) => {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
+
+            // 드래그 중 실시간 위치 추적
+            if (this.draggedElement) {
+                this.updateDragPreview(e);
+            }
         });
 
         this.canvas.addEventListener('drop', (e) => {
             e.preventDefault();
+            this.clearGuidelines();
+
             const wrapper = this.canvas.querySelector('.wireframe-wrapper');
             if (!wrapper) return;
 
@@ -41,9 +51,170 @@ class WireframeRenderer {
         });
     }
 
+    // 드래그 프리뷰 업데이트 (실시간 스냅 및 가이드라인)
+    updateDragPreview(e) {
+        if (!this.draggedElement) return;
+
+        const wrapper = this.canvas.querySelector('.wireframe-wrapper');
+        const rect = wrapper.getBoundingClientRect();
+
+        let newX = Math.round(e.clientX - rect.left - this.draggedElement.offsetX);
+        let newY = Math.round(e.clientY - rect.top - this.draggedElement.offsetY);
+
+        // 스냅 적용
+        const snapped = this.applySnap(newX, newY, this.draggedElement.index);
+        newX = snapped.x;
+        newY = snapped.y;
+
+        // 가이드라인 표시
+        this.showGuidelines(snapped.guidelines);
+
+        // 컨테이너 감지 및 하이라이트
+        this.highlightContainer(e.clientX, e.clientY);
+    }
+
+    // 컨테이너 하이라이트
+    highlightContainer(clientX, clientY) {
+        // 기존 하이라이트 제거
+        const prevHighlighted = this.canvas.querySelectorAll('.container-highlight');
+        prevHighlighted.forEach(el => el.classList.remove('container-highlight'));
+
+        // 컨테이너 타입 정의
+        const containerTypes = ['wf-container', 'wf-card', 'wf-sidebar', 'wf-modal', 'wf-header', 'wf-footer'];
+
+        // 드래그 중인 요소를 제외한 컨테이너 찾기
+        const containers = Array.from(this.canvas.querySelectorAll(
+            containerTypes.map(type => `.${type}`).join(', ')
+        )).filter(el => {
+            // 드래그 중인 요소는 제외
+            if (this.draggedElement && el === this.draggedElement.domElement) {
+                return false;
+            }
+            return true;
+        });
+
+        // 마우스 위치의 컨테이너 찾기
+        for (const container of containers) {
+            const rect = container.getBoundingClientRect();
+            if (clientX >= rect.left && clientX <= rect.right &&
+                clientY >= rect.top && clientY <= rect.bottom) {
+                container.classList.add('container-highlight');
+                break;
+            }
+        }
+    }
+
+    // 스냅 로직 적용
+    applySnap(x, y, currentIndex) {
+        let snappedX = x;
+        let snappedY = y;
+        const guidelines = [];
+
+        // 그리드 스냅
+        const gridSnappedX = Math.round(x / this.gridSize) * this.gridSize;
+        const gridSnappedY = Math.round(y / this.gridSize) * this.gridSize;
+
+        if (Math.abs(x - gridSnappedX) < this.snapThreshold) {
+            snappedX = gridSnappedX;
+        }
+        if (Math.abs(y - gridSnappedY) < this.snapThreshold) {
+            snappedY = gridSnappedY;
+        }
+
+        // 다른 요소들과의 스냅
+        if (this.currentData && this.currentData.elements) {
+            this.currentData.elements.forEach((element, index) => {
+                if (index === currentIndex) return; // 자기 자신은 제외
+
+                const targetX = element.props.x || 0;
+                const targetY = element.props.y || 0;
+                const targetWidth = element.props.width || 100;
+                const targetHeight = element.props.height || 100;
+
+                // X축 스냅 (좌측, 중앙, 우측)
+                const snapPoints = [
+                    { pos: targetX, type: 'left' },
+                    { pos: targetX + targetWidth / 2, type: 'center' },
+                    { pos: targetX + targetWidth, type: 'right' }
+                ];
+
+                snapPoints.forEach(point => {
+                    if (Math.abs(x - point.pos) < this.snapThreshold) {
+                        snappedX = point.pos;
+                        guidelines.push({
+                            type: 'vertical',
+                            pos: point.pos,
+                            label: point.type
+                        });
+                    }
+                });
+
+                // Y축 스냅 (상단, 중앙, 하단)
+                const snapPointsY = [
+                    { pos: targetY, type: 'top' },
+                    { pos: targetY + targetHeight / 2, type: 'middle' },
+                    { pos: targetY + targetHeight, type: 'bottom' }
+                ];
+
+                snapPointsY.forEach(point => {
+                    if (Math.abs(y - point.pos) < this.snapThreshold) {
+                        snappedY = point.pos;
+                        guidelines.push({
+                            type: 'horizontal',
+                            pos: point.pos,
+                            label: point.type
+                        });
+                    }
+                });
+            });
+        }
+
+        return { x: snappedX, y: snappedY, guidelines };
+    }
+
+    // 가이드라인 표시
+    showGuidelines(guidelines) {
+        this.clearGuidelines();
+
+        const wrapper = this.canvas.querySelector('.wireframe-wrapper');
+        if (!wrapper) return;
+
+        guidelines.forEach(guide => {
+            const line = document.createElement('div');
+            line.className = 'snap-guideline';
+            line.classList.add(guide.type);
+
+            if (guide.type === 'vertical') {
+                line.style.left = guide.pos + 'px';
+                line.style.top = '0';
+                line.style.height = '100%';
+                line.style.width = '1px';
+            } else {
+                line.style.top = guide.pos + 'px';
+                line.style.left = '0';
+                line.style.width = '100%';
+                line.style.height = '1px';
+            }
+
+            wrapper.appendChild(line);
+            this.guidelines.push(line);
+        });
+    }
+
+    // 가이드라인 제거
+    clearGuidelines() {
+        this.guidelines.forEach(line => line.remove());
+        this.guidelines = [];
+    }
+
     // 새 컴포넌트 추가
     addNewComponent(component, x, y) {
         if (!this.currentData) return;
+
+        // 스냅 적용
+        const snapped = this.applySnap(x, y, -1);
+        x = snapped.x;
+        y = snapped.y;
 
         // 예제 코드를 파싱하여 속성 추출
         const lines = component.example.split('\n');
@@ -151,14 +322,24 @@ class WireframeRenderer {
         // 드래그 종료
         domElement.addEventListener('dragend', (e) => {
             domElement.style.opacity = '1';
+            this.clearGuidelines();
+
+            // 컨테이너 하이라이트 제거
+            const prevHighlighted = this.canvas.querySelectorAll('.container-highlight');
+            prevHighlighted.forEach(el => el.classList.remove('container-highlight'));
 
             if (this.draggedElement) {
                 const wrapper = this.canvas.querySelector('.wireframe-wrapper');
                 const rect = wrapper.getBoundingClientRect();
 
                 // 새 위치 계산
-                const newX = Math.round(e.clientX - rect.left - this.draggedElement.offsetX);
-                const newY = Math.round(e.clientY - rect.top - this.draggedElement.offsetY);
+                let newX = Math.round(e.clientX - rect.left - this.draggedElement.offsetX);
+                let newY = Math.round(e.clientY - rect.top - this.draggedElement.offsetY);
+
+                // 스냅 적용
+                const snapped = this.applySnap(newX, newY, this.draggedElement.index);
+                newX = snapped.x;
+                newY = snapped.y;
 
                 // 위치가 실제로 변경된 경우에만 업데이트
                 if (newX !== this.draggedElement.startX || newY !== this.draggedElement.startY) {
