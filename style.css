@@ -1185,7 +1185,8 @@ summary:hover {
     background: #3498db;
     opacity: 0;
     transition: opacity 0.2s;
-    z-index: 10;
+    z-index: 100;
+    pointer-events: auto;
 }
 
 .wf-element:hover .resize-handle {

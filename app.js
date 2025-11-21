@@ -669,6 +669,8 @@ function updateCodeWithPosition(element, index, newX, newY) {
 }
 
 function updateCodeWithSize(element, index, width, height, x, y) {
+    console.log('updateCodeWithSize 호출:', { index, width, height, x, y });
+
     const codeEditor = document.getElementById('codeEditor');
     const codeEditorModal = document.getElementById('codeEditorModal');
     const lines = codeEditor.value.split('\n');

@@ -471,10 +471,15 @@ class WireframeRenderer {
             // 리사이즈 핸들 클릭 시 드래그 방지
             handle.setAttribute('draggable', 'false');
 
+            // pointer-events를 확실히 설정
+            handle.style.pointerEvents = 'auto';
+
             // 마우스다운 이벤트
             handle.addEventListener('mousedown', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+
+                console.log('리사이즈 시작:', handleConfig.name);
 
                 // 드래그 비활성화
                 domElement.setAttribute('draggable', 'false');
@@ -538,6 +543,8 @@ class WireframeRenderer {
                     const finalX = parseInt(domElement.style.left);
                     const finalY = parseInt(domElement.style.top);
 
+                    console.log('리사이즈 완료:', finalWidth, finalHeight, finalX, finalY);
+
                     // 코드 업데이트
                     this.updateElementSize(index, finalWidth, finalHeight, finalX, finalY);
                 };
@@ -548,6 +555,8 @@ class WireframeRenderer {
 
             domElement.appendChild(handle);
         });
+
+        console.log('리사이즈 핸들 추가 완료:', domElement.className);
     }
 
     // 요소 크기 및 위치 업데이트
@@ -556,9 +565,13 @@ class WireframeRenderer {
 
         const element = this.currentData.elements[index];
 
+        console.log('updateElementSize 호출:', { index, width, height, x, y });
+
         // 코드 업데이트 콜백 호출
         if (this.onCodeUpdate) {
             this.onCodeUpdate('resize', { element, index, width, height, x, y });
+        } else {
+            console.error('onCodeUpdate 콜백이 설정되지 않음!');
         }
     }
 
