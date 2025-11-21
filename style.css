@@ -127,26 +127,58 @@ body.view-both .code-modal {
 .code-modal {
     display: none;
     position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 1200px;
+    width: 450px;
+    max-width: 450px;
     background: white;
     border-radius: 8px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     z-index: 2000;
-    max-height: 70vh;
+    max-height: 500px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 코드 모달 위치 클래스 */
+.code-modal.position-top-left {
+    top: 20px;
+    left: 20px;
+}
+
+.code-modal.position-top-right {
+    top: 20px;
+    right: 20px;
+}
+
+.code-modal.position-bottom-left {
+    bottom: 20px;
+    left: 20px;
+}
+
+.code-modal.position-bottom-right {
+    bottom: 20px;
+    right: 20px;
+}
+
+/* 드래그 중 스타일 */
+.code-modal.dragging {
+    transition: none;
+    cursor: grabbing;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
 }
 
 .code-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 20px;
+    padding: 12px 15px;
     background: #34495e;
     color: white;
     border-radius: 8px 8px 0 0;
+    cursor: grab;
+    user-select: none;
+}
+
+.code-modal-header:active {
+    cursor: grabbing;
 }
 
 .code-modal-header h3 {
@@ -181,7 +213,7 @@ body.view-both .code-modal {
 }
 
 .code-modal-content {
-    max-height: calc(70vh - 60px);
+    max-height: 400px;
     overflow: hidden;
     transition: max-height 0.3s ease;
 }

@@ -748,10 +748,118 @@ document.addEventListener('DOMContentLoaded', () => {
             viewBothBtn.classList.add('active');
             // 둘다보기 모드에서는 코드 동기화
             syncCodeToModal();
+            // 초기 위치 설정
+            if (!codeModal.dataset.position) {
+                setModalPosition('top-right');
+            }
         } else if (mode === 'preview') {
             viewPreviewBtn.classList.add('active');
         }
     }
+
+    // 코드 모달 드래그 기능
+    let modalDragging = false;
+    let modalStartX, modalStartY, modalOffsetX, modalOffsetY;
+
+    function setModalPosition(position) {
+        codeModal.classList.remove('position-top-left', 'position-top-right', 'position-bottom-left', 'position-bottom-right');
+        codeModal.classList.add(`position-${position}`);
+        codeModal.dataset.position = position;
+    }
+
+    function getClosestCorner(x, y) {
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        const snapMargin = 100; // 스냅 임계값
+
+        // 중앙 기준으로 좌/우, 상/하 판단
+        const isLeft = x < windowWidth / 2;
+        const isTop = y < windowHeight / 2;
+
+        // 모서리에 가까운지 확인
+        const distToLeft = x;
+        const distToRight = windowWidth - x;
+        const distToTop = y;
+        const distToBottom = windowHeight - y;
+
+        // 가장 가까운 모서리 결정
+        const minHorizontalDist = Math.min(distToLeft, distToRight);
+        const minVerticalDist = Math.min(distToTop, distToBottom);
+
+        // 스냅 영역 내에 있는지 확인
+        if (minHorizontalDist < snapMargin || minVerticalDist < snapMargin) {
+            if (isTop && isLeft) return 'top-left';
+            if (isTop && !isLeft) return 'top-right';
+            if (!isTop && isLeft) return 'bottom-left';
+            if (!isTop && !isLeft) return 'bottom-right';
+        }
+
+        return null;
+    }
+
+    const modalHeader = codeModal.querySelector('.code-modal-header');
+
+    modalHeader.addEventListener('mousedown', (e) => {
+        if (e.target.closest('button')) return; // 버튼 클릭 시 드래그 방지
+
+        modalDragging = true;
+        codeModal.classList.add('dragging');
+
+        const rect = codeModal.getBoundingClientRect();
+        modalOffsetX = e.clientX - rect.left;
+        modalOffsetY = e.clientY - rect.top;
+        modalStartX = rect.left;
+        modalStartY = rect.top;
+
+        // 현재 position 클래스 제거하고 절대 위치로 전환
+        codeModal.classList.remove('position-top-left', 'position-top-right', 'position-bottom-left', 'position-bottom-right');
+        codeModal.style.left = rect.left + 'px';
+        codeModal.style.top = rect.top + 'px';
+        codeModal.style.right = 'auto';
+        codeModal.style.bottom = 'auto';
+
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!modalDragging) return;
+
+        const newX = e.clientX - modalOffsetX;
+        const newY = e.clientY - modalOffsetY;
+
+        codeModal.style.left = newX + 'px';
+        codeModal.style.top = newY + 'px';
+
+        // 가까운 모서리 하이라이트 (옵션)
+        const closestCorner = getClosestCorner(e.clientX, e.clientY);
+        if (closestCorner) {
+            codeModal.style.opacity = '0.8';
+        } else {
+            codeModal.style.opacity = '1';
+        }
+    });
+
+    document.addEventListener('mouseup', (e) => {
+        if (!modalDragging) return;
+
+        modalDragging = false;
+        codeModal.classList.remove('dragging');
+        codeModal.style.opacity = '1';
+
+        // 가장 가까운 모서리로 스냅
+        const closestCorner = getClosestCorner(e.clientX, e.clientY);
+
+        if (closestCorner) {
+            // 스타일 초기화
+            codeModal.style.left = '';
+            codeModal.style.top = '';
+            codeModal.style.right = '';
+            codeModal.style.bottom = '';
+
+            // 위치 클래스 적용
+            setModalPosition(closestCorner);
+        }
+    });
 
     // 코드 동기화 함수 (main -> modal)
     function syncCodeToModal() {
