@@ -46,10 +46,44 @@ const COMPONENTS_DATA = [
 
     // 미디어
     { name: 'video', icon: '🎥', category: '미디어', props: 'x, y, width, height', example: 'video "비디오" {\n  x: 50, y: 1150\n  width: 640, height: 360\n}' },
-    { name: 'icon', icon: '⭐', category: '미디어', props: 'x, y, size', example: 'icon "⭐" {\n  x: 50, y: 1550\n  size: 32\n}' },
 
-    // 차트/맵
-    { name: 'chart', icon: '📊', category: '차트', props: 'x, y, width, height, type', example: 'chart "매출" {\n  x: 50, y: 1600\n  width: 400, height: 300\n  type: bar\n}' },
+    // 아이콘 - UI
+    { name: 'icon-home', icon: '🏠', category: '아이콘-UI', props: 'x, y, size, iconType', example: 'icon "home" {\n  x: 50, y: 50\n  size: 32\n}' },
+    { name: 'icon-search', icon: '🔍', category: '아이콘-UI', props: 'x, y, size, iconType', example: 'icon "search" {\n  x: 100, y: 50\n  size: 32\n}' },
+    { name: 'icon-settings', icon: '⚙️', category: '아이콘-UI', props: 'x, y, size, iconType', example: 'icon "settings" {\n  x: 150, y: 50\n  size: 32\n}' },
+    { name: 'icon-menu', icon: '☰', category: '아이콘-UI', props: 'x, y, size, iconType', example: 'icon "menu" {\n  x: 200, y: 50\n  size: 32\n}' },
+    { name: 'icon-edit', icon: '✏️', category: '아이콘-UI', props: 'x, y, size, iconType', example: 'icon "edit" {\n  x: 250, y: 50\n  size: 32\n}' },
+    { name: 'icon-delete', icon: '🗑️', category: '아이콘-UI', props: 'x, y, size, iconType', example: 'icon "delete" {\n  x: 300, y: 50\n  size: 32\n}' },
+
+    // 아이콘 - 소셜
+    { name: 'icon-twitter', icon: '🐦', category: '아이콘-소셜', props: 'x, y, size, iconType', example: 'icon "twitter" {\n  x: 50, y: 100\n  size: 32\n}' },
+    { name: 'icon-instagram', icon: '📷', category: '아이콘-소셜', props: 'x, y, size, iconType', example: 'icon "instagram" {\n  x: 100, y: 100\n  size: 32\n}' },
+    { name: 'icon-github', icon: '😺', category: '아이콘-소셜', props: 'x, y, size, iconType', example: 'icon "github" {\n  x: 150, y: 100\n  size: 32\n}' },
+
+    // 아이콘 - 비즈니스
+    { name: 'icon-user', icon: '👤', category: '아이콘-비즈니스', props: 'x, y, size, iconType', example: 'icon "user" {\n  x: 50, y: 150\n  size: 32\n}' },
+    { name: 'icon-calendar', icon: '📅', category: '아이콘-비즈니스', props: 'x, y, size, iconType', example: 'icon "calendar" {\n  x: 100, y: 150\n  size: 32\n}' },
+    { name: 'icon-mail', icon: '✉️', category: '아이콘-비즈니스', props: 'x, y, size, iconType', example: 'icon "mail" {\n  x: 150, y: 150\n  size: 32\n}' },
+    { name: 'icon-briefcase', icon: '💼', category: '아이콘-비즈니스', props: 'x, y, size, iconType', example: 'icon "briefcase" {\n  x: 200, y: 150\n  size: 32\n}' },
+
+    // 아이콘 - 상태
+    { name: 'icon-success', icon: '✓', category: '아이콘-상태', props: 'x, y, size, iconType', example: 'icon "success" {\n  x: 50, y: 200\n  size: 32\n}' },
+    { name: 'icon-error', icon: '✗', category: '아이콘-상태', props: 'x, y, size, iconType', example: 'icon "error" {\n  x: 100, y: 200\n  size: 32\n}' },
+    { name: 'icon-warning', icon: '⚠️', category: '아이콘-상태', props: 'x, y, size, iconType', example: 'icon "warning" {\n  x: 150, y: 200\n  size: 32\n}' },
+    { name: 'icon-star', icon: '⭐', category: '아이콘-상태', props: 'x, y, size, iconType', example: 'icon "star" {\n  x: 200, y: 200\n  size: 32\n}' },
+    { name: 'icon-heart', icon: '❤️', category: '아이콘-상태', props: 'x, y, size, iconType', example: 'icon "heart" {\n  x: 250, y: 200\n  size: 32\n}' },
+
+    // 차트 타입들
+    { name: 'chart-bar', icon: '📊', category: '차트', props: 'x, y, width, height, type', example: 'chart "막대 차트" {\n  x: 50, y: 300\n  width: 400, height: 300\n  type: bar\n}' },
+    { name: 'chart-line', icon: '📈', category: '차트', props: 'x, y, width, height, type', example: 'chart "라인 차트" {\n  x: 50, y: 300\n  width: 400, height: 300\n  type: line\n}' },
+    { name: 'chart-pie', icon: '🥧', category: '차트', props: 'x, y, width, height, type', example: 'chart "파이 차트" {\n  x: 50, y: 300\n  width: 400, height: 300\n  type: pie\n}' },
+    { name: 'chart-donut', icon: '🍩', category: '차트', props: 'x, y, width, height, type', example: 'chart "도넛 차트" {\n  x: 50, y: 300\n  width: 400, height: 300\n  type: donut\n}' },
+    { name: 'chart-area', icon: '📉', category: '차트', props: 'x, y, width, height, type', example: 'chart "영역 차트" {\n  x: 50, y: 300\n  width: 400, height: 300\n  type: area\n}' },
+    { name: 'chart-scatter', icon: '⚬', category: '차트', props: 'x, y, width, height, type', example: 'chart "산점도" {\n  x: 50, y: 300\n  width: 400, height: 300\n  type: scatter\n}' },
+    { name: 'chart-radar', icon: '🕸️', category: '차트', props: 'x, y, width, height, type', example: 'chart "레이더 차트" {\n  x: 50, y: 300\n  width: 400, height: 300\n  type: radar\n}' },
+    { name: 'chart-gauge', icon: '⏲️', category: '차트', props: 'x, y, width, height, type', example: 'chart "게이지 차트" {\n  x: 50, y: 300\n  width: 400, height: 300\n  type: gauge\n}' },
+
+    // 지도
     { name: 'map', icon: '🗺️', category: '지도', props: 'x, y, width, height', example: 'map "위치" {\n  x: 500, y: 1600\n  width: 600, height: 400\n}' },
 
     // 기타
@@ -62,7 +96,7 @@ const COMPONENTS_DATA = [
 const EXAMPLE_CODE = `// 대시보드 예제 - 다양한 컴포넌트 데모
 page "관리자 대시보드" {
   width: 1400
-  height: 1800
+  height: 2850
 }
 
 // 상단 헤더
@@ -280,10 +314,176 @@ map "위치" {
   height: 150
 }
 
+// 아이콘 모음 (UI 아이콘)
+text "아이콘 - UI" {
+  x: 270
+  y: 1800
+  size: 18
+  color: #2c3e50
+}
+
+icon "home" {
+  x: 270
+  y: 1830
+  size: 36
+}
+
+icon "search" {
+  x: 320
+  y: 1830
+  size: 36
+}
+
+icon "settings" {
+  x: 370
+  y: 1830
+  size: 36
+}
+
+icon "edit" {
+  x: 420
+  y: 1830
+  size: 36
+}
+
+icon "delete" {
+  x: 470
+  y: 1830
+  size: 36
+}
+
+// 아이콘 - 비즈니스
+text "아이콘 - 비즈니스" {
+  x: 550
+  y: 1800
+  size: 18
+  color: #2c3e50
+}
+
+icon "user" {
+  x: 550
+  y: 1830
+  size: 36
+}
+
+icon "calendar" {
+  x: 600
+  y: 1830
+  size: 36
+}
+
+icon "mail" {
+  x: 650
+  y: 1830
+  size: 36
+}
+
+icon "briefcase" {
+  x: 700
+  y: 1830
+  size: 36
+}
+
+// 아이콘 - 상태
+text "아이콘 - 상태" {
+  x: 800
+  y: 1800
+  size: 18
+  color: #2c3e50
+}
+
+icon "success" {
+  x: 800
+  y: 1830
+  size: 36
+}
+
+icon "warning" {
+  x: 850
+  y: 1830
+  size: 36
+}
+
+icon "heart" {
+  x: 900
+  y: 1830
+  size: 36
+}
+
+icon "star" {
+  x: 950
+  y: 1830
+  size: 36
+}
+
+// 다양한 차트 타입
+text "차트 타입 비교" {
+  x: 270
+  y: 1900
+  size: 20
+  color: #2c3e50
+}
+
+chart "라인 차트" {
+  x: 270
+  y: 1930
+  width: 350
+  height: 250
+  type: line
+}
+
+chart "파이 차트" {
+  x: 640
+  y: 1930
+  width: 350
+  height: 250
+  type: pie
+}
+
+chart "도넛 차트" {
+  x: 1010
+  y: 1930
+  width: 350
+  height: 250
+  type: donut
+}
+
+chart "영역 차트" {
+  x: 270
+  y: 2200
+  width: 350
+  height: 250
+  type: area
+}
+
+chart "산점도" {
+  x: 640
+  y: 2200
+  width: 350
+  height: 250
+  type: scatter
+}
+
+chart "레이더 차트" {
+  x: 1010
+  y: 2200
+  width: 350
+  height: 250
+  type: radar
+}
+
+chart "게이지 차트" {
+  x: 270
+  y: 2470
+  width: 350
+  height: 250
+  type: gauge
+}
+
 // 하단 푸터
 footer "© 2024 WireFrame Builder" {
   x: 0
-  y: 1800
+  y: 2750
   width: 1400
   height: 60
 }`;

@@ -712,7 +712,86 @@ class WireframeRenderer {
     renderIcon(element) {
         const icon = document.createElement('div');
         icon.className = 'wf-icon';
-        icon.textContent = element.label || '⭐';
+
+        // 아이콘 라이브러리 - 다양한 카테고리별 아이콘
+        const iconLibrary = {
+            // UI 아이콘
+            'home': '🏠',
+            'search': '🔍',
+            'settings': '⚙️',
+            'menu': '☰',
+            'close': '✕',
+            'check': '✓',
+            'plus': '+',
+            'minus': '-',
+            'edit': '✏️',
+            'delete': '🗑️',
+            'save': '💾',
+            'download': '⬇️',
+            'upload': '⬆️',
+            'refresh': '🔄',
+            'filter': '🔽',
+            'sort': '⇅',
+
+            // 소셜 미디어
+            'facebook': 'f',
+            'twitter': '🐦',
+            'instagram': '📷',
+            'linkedin': 'in',
+            'youtube': '▶',
+            'github': '😺',
+
+            // 비즈니스
+            'user': '👤',
+            'users': '👥',
+            'briefcase': '💼',
+            'calendar': '📅',
+            'clock': '🕐',
+            'mail': '✉️',
+            'phone': '📞',
+            'location': '📍',
+            'chart': '📊',
+            'document': '📄',
+            'folder': '📁',
+            'tag': '🏷️',
+
+            // 상태/피드백
+            'success': '✓',
+            'error': '✗',
+            'warning': '⚠️',
+            'info': 'ℹ️',
+            'help': '?',
+            'star': '⭐',
+            'heart': '❤️',
+            'like': '👍',
+
+            // 미디어
+            'play': '▶',
+            'pause': '⏸',
+            'stop': '⏹',
+            'forward': '⏩',
+            'backward': '⏪',
+            'volume': '🔊',
+            'mute': '🔇',
+            'camera': '📷',
+            'image': '🖼️',
+            'video': '🎥',
+
+            // 방향
+            'arrow-up': '↑',
+            'arrow-down': '↓',
+            'arrow-left': '←',
+            'arrow-right': '→',
+            'chevron-up': '⌃',
+            'chevron-down': '⌄',
+            'chevron-left': '‹',
+            'chevron-right': '›'
+        };
+
+        // 라벨이나 iconType으로 아이콘 결정
+        const iconType = element.props.iconType || element.label;
+        icon.textContent = iconLibrary[iconType] || element.label || '⭐';
+
         this.applyStyles(icon, {
             left: element.props.x + 'px',
             top: element.props.y + 'px',
@@ -732,18 +811,230 @@ class WireframeRenderer {
             height: element.props.height + 'px'
         });
 
-        const icon = document.createElement('div');
-        icon.innerHTML = '📊';
-        icon.style.fontSize = '48px';
-        icon.style.marginBottom = '10px';
+        const chartType = element.props.type || 'bar';
+
+        // 차트 타입별 시각화
+        const chartVisuals = {
+            'bar': this.renderBarChart,
+            'line': this.renderLineChart,
+            'pie': this.renderPieChart,
+            'donut': this.renderDonutChart,
+            'area': this.renderAreaChart,
+            'scatter': this.renderScatterChart,
+            'radar': this.renderRadarChart,
+            'gauge': this.renderGaugeChart
+        };
+
+        const renderMethod = chartVisuals[chartType];
+        if (renderMethod) {
+            const visual = renderMethod.call(this, element);
+            chart.appendChild(visual);
+        }
 
         const label = document.createElement('div');
-        label.textContent = element.label || (element.props.type || 'bar') + ' chart';
-
-        chart.appendChild(icon);
+        label.textContent = element.label || chartType + ' chart';
+        label.style.marginTop = '10px';
+        label.style.fontSize = '14px';
+        label.style.fontWeight = 'bold';
         chart.appendChild(label);
 
         return chart;
+    }
+
+    renderBarChart(element) {
+        const container = document.createElement('div');
+        container.style.cssText = 'display: flex; align-items: flex-end; justify-content: space-around; height: 80%; padding: 10px;';
+
+        const bars = [60, 80, 45, 90, 70];
+        bars.forEach(height => {
+            const bar = document.createElement('div');
+            bar.style.cssText = `width: 15%; background: #3498db; height: ${height}%; border-radius: 3px 3px 0 0;`;
+            container.appendChild(bar);
+        });
+
+        return container;
+    }
+
+    renderLineChart(element) {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', '80%');
+        svg.setAttribute('viewBox', '0 0 200 100');
+
+        const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+        polyline.setAttribute('points', '10,80 50,40 90,60 130,20 170,50');
+        polyline.setAttribute('fill', 'none');
+        polyline.setAttribute('stroke', '#e74c3c');
+        polyline.setAttribute('stroke-width', '2');
+
+        svg.appendChild(polyline);
+        return svg;
+    }
+
+    renderPieChart(element) {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', '80%');
+        svg.setAttribute('viewBox', '0 0 100 100');
+
+        const colors = ['#3498db', '#e74c3c', '#f39c12', '#2ecc71', '#9b59b6'];
+        const angles = [0, 120, 200, 280, 360];
+
+        for (let i = 0; i < angles.length - 1; i++) {
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const startAngle = (angles[i] - 90) * Math.PI / 180;
+            const endAngle = (angles[i + 1] - 90) * Math.PI / 180;
+            const x1 = 50 + 40 * Math.cos(startAngle);
+            const y1 = 50 + 40 * Math.sin(startAngle);
+            const x2 = 50 + 40 * Math.cos(endAngle);
+            const y2 = 50 + 40 * Math.sin(endAngle);
+            const largeArc = (angles[i + 1] - angles[i]) > 180 ? 1 : 0;
+
+            path.setAttribute('d', `M 50 50 L ${x1} ${y1} A 40 40 0 ${largeArc} 1 ${x2} ${y2} Z`);
+            path.setAttribute('fill', colors[i]);
+            svg.appendChild(path);
+        }
+
+        return svg;
+    }
+
+    renderDonutChart(element) {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', '80%');
+        svg.setAttribute('viewBox', '0 0 100 100');
+
+        const circle1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle1.setAttribute('cx', '50');
+        circle1.setAttribute('cy', '50');
+        circle1.setAttribute('r', '30');
+        circle1.setAttribute('fill', 'none');
+        circle1.setAttribute('stroke', '#3498db');
+        circle1.setAttribute('stroke-width', '20');
+        circle1.setAttribute('stroke-dasharray', '120 188');
+
+        const circle2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle2.setAttribute('cx', '50');
+        circle2.setAttribute('cy', '50');
+        circle2.setAttribute('r', '30');
+        circle2.setAttribute('fill', 'none');
+        circle2.setAttribute('stroke', '#e74c3c');
+        circle2.setAttribute('stroke-width', '20');
+        circle2.setAttribute('stroke-dasharray', '68 188');
+        circle2.setAttribute('stroke-dashoffset', '-120');
+
+        svg.appendChild(circle1);
+        svg.appendChild(circle2);
+        return svg;
+    }
+
+    renderAreaChart(element) {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', '80%');
+        svg.setAttribute('viewBox', '0 0 200 100');
+
+        const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        polygon.setAttribute('points', '10,90 10,60 50,40 90,55 130,25 170,45 170,90');
+        polygon.setAttribute('fill', 'rgba(46, 204, 113, 0.3)');
+        polygon.setAttribute('stroke', '#2ecc71');
+        polygon.setAttribute('stroke-width', '2');
+
+        svg.appendChild(polygon);
+        return svg;
+    }
+
+    renderScatterChart(element) {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', '80%');
+        svg.setAttribute('viewBox', '0 0 200 100');
+
+        const points = [
+            [20, 70], [40, 50], [35, 80], [60, 40], [80, 60],
+            [90, 30], [110, 70], [130, 45], [150, 55], [170, 35]
+        ];
+
+        points.forEach(([x, y]) => {
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', x);
+            circle.setAttribute('cy', y);
+            circle.setAttribute('r', '3');
+            circle.setAttribute('fill', '#9b59b6');
+            svg.appendChild(circle);
+        });
+
+        return svg;
+    }
+
+    renderRadarChart(element) {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', '80%');
+        svg.setAttribute('viewBox', '0 0 100 100');
+
+        // 배경 육각형
+        for (let i = 3; i >= 1; i--) {
+            const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            const scale = i / 3;
+            const points = [];
+            for (let j = 0; j < 6; j++) {
+                const angle = (j * 60 - 90) * Math.PI / 180;
+                const x = 50 + 30 * scale * Math.cos(angle);
+                const y = 50 + 30 * scale * Math.sin(angle);
+                points.push(`${x},${y}`);
+            }
+            polygon.setAttribute('points', points.join(' '));
+            polygon.setAttribute('fill', 'none');
+            polygon.setAttribute('stroke', '#ddd');
+            polygon.setAttribute('stroke-width', '1');
+            svg.appendChild(polygon);
+        }
+
+        // 데이터 폴리곤
+        const dataPolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        const dataPoints = [];
+        const values = [0.8, 0.6, 0.9, 0.7, 0.5, 0.85];
+        for (let j = 0; j < 6; j++) {
+            const angle = (j * 60 - 90) * Math.PI / 180;
+            const x = 50 + 30 * values[j] * Math.cos(angle);
+            const y = 50 + 30 * values[j] * Math.sin(angle);
+            dataPoints.push(`${x},${y}`);
+        }
+        dataPolygon.setAttribute('points', dataPoints.join(' '));
+        dataPolygon.setAttribute('fill', 'rgba(52, 152, 219, 0.3)');
+        dataPolygon.setAttribute('stroke', '#3498db');
+        dataPolygon.setAttribute('stroke-width', '2');
+        svg.appendChild(dataPolygon);
+
+        return svg;
+    }
+
+    renderGaugeChart(element) {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', '80%');
+        svg.setAttribute('viewBox', '0 0 100 60');
+
+        // 배경 아크
+        const bgArc = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        bgArc.setAttribute('d', 'M 10 50 A 40 40 0 0 1 90 50');
+        bgArc.setAttribute('fill', 'none');
+        bgArc.setAttribute('stroke', '#ecf0f1');
+        bgArc.setAttribute('stroke-width', '8');
+
+        // 값 아크 (75%)
+        const valueArc = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        valueArc.setAttribute('d', 'M 10 50 A 40 40 0 0 1 80 20');
+        valueArc.setAttribute('fill', 'none');
+        valueArc.setAttribute('stroke', '#2ecc71');
+        valueArc.setAttribute('stroke-width', '8');
+        valueArc.setAttribute('stroke-linecap', 'round');
+
+        svg.appendChild(bgArc);
+        svg.appendChild(valueArc);
+
+        return svg;
     }
 
     renderMap(element) {
