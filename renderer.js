@@ -522,6 +522,11 @@ class WireframeRenderer {
                     const finalY = parseInt(domElement.style.top);
 
                     console.log('=== 리사이즈 완료 ===');
+                    console.log('리사이즈된 컴포넌트:');
+                    console.log('  타입:', dataElement.type);
+                    console.log('  라벨:', dataElement.label || '(없음)');
+                    console.log('  인덱스:', index);
+                    console.log('  DOM 클래스:', domElement.className);
                     console.log('최종 크기:', { width: finalWidth, height: finalHeight });
                     console.log('최종 위치:', { x: finalX, y: finalY });
                     console.log('변화량:', {
@@ -530,6 +535,17 @@ class WireframeRenderer {
                         xDelta: finalX - startLeft,
                         yDelta: finalY - startTop
                     });
+
+                    // 현재 데이터에서 해당 인덱스의 요소 확인
+                    if (this.currentData && this.currentData.elements[index]) {
+                        const targetElement = this.currentData.elements[index];
+                        console.log('코드 업데이트 대상:');
+                        console.log('  타입:', targetElement.type);
+                        console.log('  라벨:', targetElement.label || '(없음)');
+                        console.log('  현재 코드 속성:', targetElement.props);
+                    } else {
+                        console.error('⚠️ 경고: 인덱스', index, '의 요소를 찾을 수 없음!');
+                    }
 
                     // 코드 업데이트
                     this.updateElementSize(index, finalWidth, finalHeight, finalX, finalY);
@@ -547,11 +563,23 @@ class WireframeRenderer {
 
     // 요소 크기 및 위치 업데이트
     updateElementSize(index, width, height, x, y) {
-        if (!this.currentData || !this.currentData.elements[index]) return;
+        if (!this.currentData || !this.currentData.elements[index]) {
+            console.error('⚠️ updateElementSize 실패: 유효하지 않은 인덱스', index);
+            console.error('  currentData 존재:', !!this.currentData);
+            console.error('  elements 개수:', this.currentData ? this.currentData.elements.length : 0);
+            return;
+        }
 
         const element = this.currentData.elements[index];
 
-        console.log('updateElementSize 호출:', { index, width, height, x, y });
+        console.log('=== updateElementSize 호출 ===');
+        console.log('업데이트할 요소:', {
+            index,
+            타입: element.type,
+            라벨: element.label || '(없음)',
+            변경전_속성: element.props
+        });
+        console.log('새 값:', { width, height, x, y });
 
         // 코드 업데이트 콜백 호출
         if (this.onCodeUpdate) {
