@@ -288,12 +288,6 @@ class WireframeRenderer {
                 // z-index 역순 할당 (코드 아래가 시각적으로 위)
                 rendered.style.zIndex = totalElements - i;
 
-                // wf-element 클래스 추가
-                rendered.classList.add('wf-element');
-
-                // 드래그 가능하도록 설정
-                this.makeDraggable(rendered, element, i);
-
                 wrapper.appendChild(rendered);
             }
         }
@@ -302,116 +296,6 @@ class WireframeRenderer {
         this.canvas.appendChild(wrapper);
     }
 
-    // 요소를 드래그 가능하게 만들기
-    makeDraggable(domElement, dataElement, index) {
-        domElement.setAttribute('draggable', 'true');
-        domElement.style.cursor = 'move';
-        domElement.dataset.elementIndex = index;
-
-        // 드래그 시작
-        domElement.addEventListener('dragstart', (e) => {
-            console.log('=== 컴포넌트 선택 (드래그) ===');
-            console.log('타입:', dataElement.type);
-            console.log('라벨:', dataElement.label || '(없음)');
-            console.log('인덱스:', index);
-            console.log('현재 위치:', { x: dataElement.props.x || 0, y: dataElement.props.y || 0 });
-            console.log('현재 크기:', {
-                width: dataElement.props.width || '(없음)',
-                height: dataElement.props.height || '(없음)'
-            });
-            console.log('클래스:', domElement.className);
-
-            this.draggedElement = {
-                domElement: domElement,
-                dataElement: dataElement,
-                index: index,
-                startX: dataElement.props.x || 0,
-                startY: dataElement.props.y || 0,
-                offsetX: e.offsetX,
-                offsetY: e.offsetY
-            };
-            domElement.style.opacity = '0.5';
-            e.dataTransfer.effectAllowed = 'move';
-        });
-
-        // 드래그 종료
-        domElement.addEventListener('dragend', (e) => {
-            domElement.style.opacity = '1';
-            this.clearGuidelines();
-
-            if (this.draggedElement) {
-                console.log('=== 드래그 종료 ===');
-                console.log('드롭 마우스 위치:', { x: e.clientX, y: e.clientY });
-
-                const wrapper = this.canvas.querySelector('.wireframe-wrapper');
-                const wrapperRect = wrapper.getBoundingClientRect();
-
-                console.log('Wrapper 위치:', {
-                    left: wrapperRect.left,
-                    top: wrapperRect.top,
-                    width: wrapperRect.width,
-                    height: wrapperRect.height
-                });
-
-                // Wrapper 기준 상대 좌표 계산 (스냅 전)
-                const beforeSnap = {
-                    x: Math.round(e.clientX - wrapperRect.left - this.draggedElement.offsetX),
-                    y: Math.round(e.clientY - wrapperRect.top - this.draggedElement.offsetY)
-                };
-
-                console.log('스냅 전:', beforeSnap);
-
-                // 스냅 적용
-                const snapped = this.applySnap(beforeSnap.x, beforeSnap.y, this.draggedElement.index);
-                const newX = snapped.x;
-                const newY = snapped.y;
-
-                console.log('스냅 후:', { x: newX, y: newY });
-                console.log('스냅 변화량:', {
-                    deltaX: newX - beforeSnap.x,
-                    deltaY: newY - beforeSnap.y
-                });
-
-                console.log('최종 위치:', { x: newX, y: newY });
-                console.log('시작 위치:', { x: this.draggedElement.startX, y: this.draggedElement.startY });
-                console.log('위치 변화:', {
-                    deltaX: newX - this.draggedElement.startX,
-                    deltaY: newY - this.draggedElement.startY
-                });
-
-                // 위치가 실제로 변경된 경우에만 업데이트
-                if (newX !== this.draggedElement.startX || newY !== this.draggedElement.startY) {
-                    this.updateElementPosition(this.draggedElement.index, newX, newY);
-                } else {
-                    console.log('위치 변화 없음 - 업데이트 스킵');
-                }
-
-                this.draggedElement = null;
-            }
-        });
-
-        // 호버 효과
-        domElement.addEventListener('mouseenter', () => {
-            domElement.style.outline = '2px dashed #3498db';
-        });
-
-        domElement.addEventListener('mouseleave', () => {
-            domElement.style.outline = 'none';
-        });
-    }
-
-
-    // 요소 위치 업데이트
-    updateElementPosition(index, newX, newY) {
-        if (!this.currentData || !this.currentData.elements[index]) return;
-
-        const element = this.currentData.elements[index];
-
-        // 코드 업데이트 콜백 호출
-        if (this.onCodeUpdate) {
-            this.onCodeUpdate('move', { element, index, newX, newY });
-        }
-    }
 
     renderElement(element) {
         const methods = {
