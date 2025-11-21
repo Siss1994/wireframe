@@ -720,21 +720,37 @@ function updateCodeWithSize(element, index, width, height, x, y) {
     let yUpdated = false;
 
     for (let i = blockStart + 1; i < blockEnd; i++) {
-        const line = lines[i];
+        let line = lines[i];
+        let modified = false;
+
+        // 한 줄에 여러 속성이 있을 수 있으므로 각각 독립적으로 체크
         if (line.includes('width:')) {
-            lines[i] = line.replace(/width:\s*\d+/, `width: ${width}`);
+            line = line.replace(/width:\s*\d+/, `width: ${width}`);
             widthUpdated = true;
-        } else if (line.includes('height:')) {
-            lines[i] = line.replace(/height:\s*\d+/, `height: ${height}`);
+            modified = true;
+        }
+        if (line.includes('height:')) {
+            line = line.replace(/height:\s*\d+/, `height: ${height}`);
             heightUpdated = true;
-        } else if (line.includes('x:')) {
-            lines[i] = line.replace(/x:\s*\d+/, `x: ${x}`);
+            modified = true;
+        }
+        if (line.includes('x:')) {
+            line = line.replace(/x:\s*\d+/, `x: ${x}`);
             xUpdated = true;
-        } else if (line.includes('y:')) {
-            lines[i] = line.replace(/y:\s*\d+/, `y: ${y}`);
+            modified = true;
+        }
+        if (line.includes('y:')) {
+            line = line.replace(/y:\s*\d+/, `y: ${y}`);
             yUpdated = true;
+            modified = true;
+        }
+
+        if (modified) {
+            lines[i] = line;
         }
     }
+
+    console.log('업데이트 상태:', { widthUpdated, heightUpdated, xUpdated, yUpdated });
 
     // 값이 없으면 추가
     const indent = '  ';
