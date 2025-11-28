@@ -1,7 +1,7 @@
 /**
  * Diagram Parser
  * Mermaid-like syntax를 파싱하여 다이어그램 데이터로 변환
- * 지원: flowchart, sequenceDiagram, stateDiagram, mindmap
+ * 지원: flowchart, sequenceDiagram, stateDiagram, mindmap, pie, classDiagram, erDiagram, gantt, journey
  */
 
 class DiagramParser {
@@ -19,6 +19,18 @@ class DiagramParser {
         this.mindmapRoot = null;
         this.diagramType = null;
         this.direction = 'TD';
+        // New diagram types
+        this.pieData = [];
+        this.pieTitle = '';
+        this.classes = [];
+        this.classRelations = [];
+        this.entities = [];
+        this.entityRelations = [];
+        this.ganttTasks = [];
+        this.ganttSections = [];
+        this.ganttTitle = '';
+        this.journeyTitle = '';
+        this.journeySections = [];
     }
 
     parse(code) {
@@ -44,8 +56,18 @@ class DiagramParser {
             return this.parseStateDiagram(lines);
         } else if (firstLine.startsWith('mindmap')) {
             return this.parseMindmap(lines);
+        } else if (firstLine.startsWith('pie')) {
+            return this.parsePieChart(lines);
+        } else if (firstLine.startsWith('classdiagram')) {
+            return this.parseClassDiagram(lines);
+        } else if (firstLine.startsWith('erdiagram')) {
+            return this.parseErDiagram(lines);
+        } else if (firstLine.startsWith('gantt')) {
+            return this.parseGantt(lines);
+        } else if (firstLine.startsWith('journey')) {
+            return this.parseJourney(lines);
         } else {
-            throw new Error(`지원하지 않는 다이어그램 타입입니다. flowchart, sequenceDiagram, stateDiagram, mindmap 중 하나를 사용하세요.`);
+            throw new Error(`지원하지 않는 다이어그램 타입입니다. flowchart, sequenceDiagram, stateDiagram, mindmap, pie, classDiagram, erDiagram, gantt, journey 중 하나를 사용하세요.`);
         }
     }
 
@@ -364,6 +386,352 @@ class DiagramParser {
 
     generateId() {
         return 'node_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    // ===== Pie Chart Parser =====
+    parsePieChart(lines) {
+        this.diagramType = 'pie';
+
+        // 첫 줄에서 showData 옵션과 title 확인
+        const firstLine = lines[0];
+        const showDataMatch = firstLine.match(/showData/i);
+        const titleMatch = firstLine.match(/title\s+(.+)$/i);
+
+        let showData = !!showDataMatch;
+        if (titleMatch) {
+            this.pieTitle = titleMatch[1].trim();
+        }
+
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+
+            // title 정의
+            const lineTitleMatch = line.match(/^title\s+(.+)$/i);
+            if (lineTitleMatch) {
+                this.pieTitle = lineTitleMatch[1].trim();
+                continue;
+            }
+
+            // 데이터: "Label" : value
+            const dataMatch = line.match(/^"([^"]+)"\s*:\s*(\d+(?:\.\d+)?)$/);
+            if (dataMatch) {
+                this.pieData.push({
+                    label: dataMatch[1],
+                    value: parseFloat(dataMatch[2])
+                });
+            }
+        }
+
+        return {
+            type: 'pie',
+            title: this.pieTitle,
+            data: this.pieData,
+            showData
+        };
+    }
+
+    // ===== Class Diagram Parser =====
+    parseClassDiagram(lines) {
+        this.diagramType = 'classDiagram';
+
+        const classMap = new Map();
+
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+
+            // class 정의: class ClassName
+            const classDefMatch = line.match(/^class\s+(\w+)(?:\s*\{)?$/);
+            if (classDefMatch) {
+                const className = classDefMatch[1];
+                if (!classMap.has(className)) {
+                    classMap.set(className, { name: className, attributes: [], methods: [] });
+                }
+                continue;
+            }
+
+            // 클래스 멤버: ClassName : +attribute or +method()
+            const memberMatch = line.match(/^(\w+)\s*:\s*([+\-#~])?(.+)$/);
+            if (memberMatch) {
+                const [, className, visibility, member] = memberMatch;
+                if (!classMap.has(className)) {
+                    classMap.set(className, { name: className, attributes: [], methods: [] });
+                }
+                const classObj = classMap.get(className);
+                const isMethod = member.includes('(');
+                if (isMethod) {
+                    classObj.methods.push({ visibility: visibility || '+', name: member.trim() });
+                } else {
+                    classObj.attributes.push({ visibility: visibility || '+', name: member.trim() });
+                }
+                continue;
+            }
+
+            // 관계: ClassA <|-- ClassB (상속), ClassA *-- ClassB (컴포지션), etc.
+            const relationMatch = line.match(/^(\w+)\s*(<\|--|<\.\.|\*--|o--|-->|--\*|--o|\.\.>|--)\s*(\w+)(?:\s*:\s*(.+))?$/);
+            if (relationMatch) {
+                const [, classA, relation, classB, label] = relationMatch;
+
+                // 클래스 자동 등록
+                if (!classMap.has(classA)) {
+                    classMap.set(classA, { name: classA, attributes: [], methods: [] });
+                }
+                if (!classMap.has(classB)) {
+                    classMap.set(classB, { name: classB, attributes: [], methods: [] });
+                }
+
+                let relationType = 'association';
+                if (relation.includes('<|')) relationType = 'inheritance';
+                else if (relation.includes('*')) relationType = 'composition';
+                else if (relation.includes('o')) relationType = 'aggregation';
+                else if (relation.includes('..')) relationType = 'dependency';
+
+                this.classRelations.push({
+                    from: classA,
+                    to: classB,
+                    type: relationType,
+                    label: label || ''
+                });
+            }
+
+            // 주석 정의: <<interface>> ClassName
+            const stereotypeMatch = line.match(/^<<(\w+)>>\s*(\w+)$/);
+            if (stereotypeMatch) {
+                const [, stereotype, className] = stereotypeMatch;
+                if (!classMap.has(className)) {
+                    classMap.set(className, { name: className, attributes: [], methods: [], stereotype });
+                } else {
+                    classMap.get(className).stereotype = stereotype;
+                }
+            }
+        }
+
+        this.classes = Array.from(classMap.values());
+
+        return {
+            type: 'classDiagram',
+            classes: this.classes,
+            relations: this.classRelations
+        };
+    }
+
+    // ===== ER Diagram Parser =====
+    parseErDiagram(lines) {
+        this.diagramType = 'erDiagram';
+
+        const entityMap = new Map();
+
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+
+            // 관계: ENTITY1 ||--o{ ENTITY2 : relationship
+            const relationMatch = line.match(/^(\w+)\s*(\|\||\|o|o\||\}o|o\{|\}\||\|\{|\|\|)?(--)?(\|\||o\||o\{|\{o|\|o|\{\||\|\{|\|\|)?\s*(\w+)\s*:\s*(.+)$/);
+            if (relationMatch) {
+                const [, entity1, leftCard, , rightCard, entity2, label] = relationMatch;
+
+                // 엔티티 자동 등록
+                if (!entityMap.has(entity1)) {
+                    entityMap.set(entity1, { name: entity1, attributes: [] });
+                }
+                if (!entityMap.has(entity2)) {
+                    entityMap.set(entity2, { name: entity2, attributes: [] });
+                }
+
+                // 카디널리티 해석
+                const leftCardinality = this.parseCardinality(leftCard);
+                const rightCardinality = this.parseCardinality(rightCard);
+
+                this.entityRelations.push({
+                    from: entity1,
+                    to: entity2,
+                    label: label.trim(),
+                    leftCardinality,
+                    rightCardinality
+                });
+                continue;
+            }
+
+            // 엔티티 속성 정의: ENTITY { type name PK/FK }
+            const entityAttrMatch = line.match(/^(\w+)\s*\{$/);
+            if (entityAttrMatch) {
+                const entityName = entityAttrMatch[1];
+                if (!entityMap.has(entityName)) {
+                    entityMap.set(entityName, { name: entityName, attributes: [] });
+                }
+
+                // 속성들 파싱
+                i++;
+                while (i < lines.length) {
+                    const attrLine = lines[i].trim();
+                    if (attrLine === '}') break;
+
+                    const attrMatch = attrLine.match(/^(\w+)\s+(\w+)(?:\s+(PK|FK|UK))?$/);
+                    if (attrMatch) {
+                        entityMap.get(entityName).attributes.push({
+                            type: attrMatch[1],
+                            name: attrMatch[2],
+                            key: attrMatch[3] || null
+                        });
+                    }
+                    i++;
+                }
+            }
+        }
+
+        this.entities = Array.from(entityMap.values());
+
+        return {
+            type: 'erDiagram',
+            entities: this.entities,
+            relations: this.entityRelations
+        };
+    }
+
+    parseCardinality(card) {
+        if (!card) return 'one';
+        if (card.includes('{') || card.includes('}')) return 'many';
+        if (card.includes('o')) return 'zero-or-one';
+        return 'one';
+    }
+
+    // ===== Gantt Chart Parser =====
+    parseGantt(lines) {
+        this.diagramType = 'gantt';
+
+        let currentSection = 'default';
+        const sections = new Map();
+        sections.set('default', []);
+
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+
+            // title
+            const titleMatch = line.match(/^title\s+(.+)$/i);
+            if (titleMatch) {
+                this.ganttTitle = titleMatch[1].trim();
+                continue;
+            }
+
+            // dateFormat
+            const dateFormatMatch = line.match(/^dateFormat\s+(.+)$/i);
+            if (dateFormatMatch) {
+                // dateFormat 저장 (렌더링에서 사용)
+                this.dateFormat = dateFormatMatch[1].trim();
+                continue;
+            }
+
+            // section
+            const sectionMatch = line.match(/^section\s+(.+)$/i);
+            if (sectionMatch) {
+                currentSection = sectionMatch[1].trim();
+                if (!sections.has(currentSection)) {
+                    sections.set(currentSection, []);
+                }
+                continue;
+            }
+
+            // task: TaskName :status, id, startDate, duration/endDate
+            // 또는 간단히: TaskName : startDate, duration
+            const taskMatch = line.match(/^(.+?)\s*:\s*(.+)$/);
+            if (taskMatch) {
+                const taskName = taskMatch[1].trim();
+                const taskParams = taskMatch[2].split(',').map(p => p.trim());
+
+                const task = { name: taskName, section: currentSection };
+
+                // 파라미터 파싱
+                for (const param of taskParams) {
+                    if (param === 'done' || param === 'active' || param === 'crit') {
+                        task.status = param;
+                    } else if (param.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        if (!task.start) task.start = param;
+                        else task.end = param;
+                    } else if (param.match(/^\d+d$/)) {
+                        task.duration = parseInt(param);
+                    } else if (param.startsWith('after ')) {
+                        task.after = param.replace('after ', '');
+                    } else if (!task.id && param.match(/^\w+$/)) {
+                        task.id = param;
+                    }
+                }
+
+                // 기본 기간 설정
+                if (!task.duration && !task.end) {
+                    task.duration = 1;
+                }
+
+                sections.get(currentSection).push(task);
+            }
+        }
+
+        // 섹션 데이터 변환
+        this.ganttSections = Array.from(sections.entries()).map(([name, tasks]) => ({
+            name,
+            tasks
+        }));
+
+        return {
+            type: 'gantt',
+            title: this.ganttTitle,
+            dateFormat: this.dateFormat || 'YYYY-MM-DD',
+            sections: this.ganttSections
+        };
+    }
+
+    // ===== User Journey Parser =====
+    parseJourney(lines) {
+        this.diagramType = 'journey';
+
+        let currentSection = 'default';
+        const sections = new Map();
+        sections.set('default', []);
+
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+
+            // title
+            const titleMatch = line.match(/^title\s+(.+)$/i);
+            if (titleMatch) {
+                this.journeyTitle = titleMatch[1].trim();
+                continue;
+            }
+
+            // section
+            const sectionMatch = line.match(/^section\s+(.+)$/i);
+            if (sectionMatch) {
+                currentSection = sectionMatch[1].trim();
+                if (!sections.has(currentSection)) {
+                    sections.set(currentSection, []);
+                }
+                continue;
+            }
+
+            // task: TaskName: score: actor1, actor2
+            const taskMatch = line.match(/^(.+?)\s*:\s*(\d+)\s*:\s*(.+)$/);
+            if (taskMatch) {
+                const [, taskName, score, actors] = taskMatch;
+                sections.get(currentSection).push({
+                    name: taskName.trim(),
+                    score: parseInt(score),
+                    actors: actors.split(',').map(a => a.trim())
+                });
+            }
+        }
+
+        this.journeySections = Array.from(sections.entries()).map(([name, tasks]) => ({
+            name,
+            tasks
+        }));
+
+        return {
+            type: 'journey',
+            title: this.journeyTitle,
+            sections: this.journeySections
+        };
     }
 
     validate(code) {

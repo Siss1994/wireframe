@@ -34,6 +34,33 @@ class DiagramRenderer {
                 levelSpacing: 150,
                 siblingSpacing: 20,
                 padding: 50
+            },
+            pie: {
+                radius: 150,
+                padding: 60
+            },
+            class: {
+                classWidth: 180,
+                classMinHeight: 80,
+                classSpacing: 60,
+                padding: 50
+            },
+            er: {
+                entityWidth: 160,
+                entityMinHeight: 60,
+                entitySpacing: 80,
+                padding: 50
+            },
+            gantt: {
+                rowHeight: 35,
+                labelWidth: 150,
+                dayWidth: 30,
+                padding: 40
+            },
+            journey: {
+                stepWidth: 120,
+                stepHeight: 80,
+                padding: 40
             }
         };
     }
@@ -50,6 +77,16 @@ class DiagramRenderer {
                 return this.renderStateDiagram(data);
             case 'mindmap':
                 return this.renderMindmap(data);
+            case 'pie':
+                return this.renderPieChart(data);
+            case 'classDiagram':
+                return this.renderClassDiagram(data);
+            case 'erDiagram':
+                return this.renderErDiagram(data);
+            case 'gantt':
+                return this.renderGantt(data);
+            case 'journey':
+                return this.renderJourney(data);
             default:
                 this.showError('알 수 없는 다이어그램 타입입니다.');
         }
@@ -962,6 +999,804 @@ class DiagramRenderer {
                 this.drawMindmapNodes(svg, child, positions, cfg);
             });
         }
+    }
+
+    // ===== Pie Chart Renderer =====
+    renderPieChart(data) {
+        const cfg = this.config.pie;
+        const centerX = cfg.radius + cfg.padding;
+        const centerY = cfg.radius + cfg.padding;
+        const width = (cfg.radius + cfg.padding) * 2 + 200; // 범례 공간
+        const height = (cfg.radius + cfg.padding) * 2;
+
+        const svg = this.createSvg(width, height);
+
+        // 타이틀
+        if (data.title) {
+            const title = this.createText(centerX, 25, data.title, {
+                fontSize: '18', fontWeight: 'bold', fill: '#2C3E50'
+            });
+            svg.appendChild(title);
+        }
+
+        // 총합 계산
+        const total = data.data.reduce((sum, d) => sum + d.value, 0);
+
+        // 색상 팔레트
+        const colors = ['#3498DB', '#E74C3C', '#2ECC71', '#F39C12', '#9B59B6', '#1ABC9C', '#E91E63', '#00BCD4', '#FF5722', '#795548'];
+
+        let startAngle = -Math.PI / 2;
+
+        data.data.forEach((item, index) => {
+            const sliceAngle = (item.value / total) * 2 * Math.PI;
+            const endAngle = startAngle + sliceAngle;
+            const color = colors[index % colors.length];
+
+            // 파이 조각 그리기
+            const slice = this.createPieSlice(centerX, centerY, cfg.radius, startAngle, endAngle, color);
+            svg.appendChild(slice);
+
+            // 값 표시 (showData인 경우)
+            if (data.showData) {
+                const midAngle = startAngle + sliceAngle / 2;
+                const labelRadius = cfg.radius * 0.7;
+                const labelX = centerX + Math.cos(midAngle) * labelRadius;
+                const labelY = centerY + Math.sin(midAngle) * labelRadius;
+                const percentage = ((item.value / total) * 100).toFixed(1) + '%';
+
+                const label = this.createText(labelX, labelY, percentage, {
+                    fontSize: '12', fontWeight: 'bold', fill: '#fff'
+                });
+                svg.appendChild(label);
+            }
+
+            startAngle = endAngle;
+        });
+
+        // 범례 그리기
+        const legendX = centerX + cfg.radius + 40;
+        let legendY = cfg.padding + 20;
+
+        data.data.forEach((item, index) => {
+            const color = colors[index % colors.length];
+
+            // 색상 박스
+            const colorBox = this.createRect(legendX, legendY - 8, 16, 16, {
+                fill: color, stroke: 'none', rx: 2
+            });
+            svg.appendChild(colorBox);
+
+            // 라벨
+            const percentage = ((item.value / total) * 100).toFixed(1);
+            const labelText = `${item.label} (${percentage}%)`;
+            const label = this.createText(legendX + 24, legendY, labelText, {
+                fontSize: '12', fill: '#2C3E50', anchor: 'start'
+            });
+            svg.appendChild(label);
+
+            legendY += 25;
+        });
+
+        this.container.appendChild(svg);
+        return svg;
+    }
+
+    createPieSlice(cx, cy, r, startAngle, endAngle, color) {
+        const x1 = cx + r * Math.cos(startAngle);
+        const y1 = cy + r * Math.sin(startAngle);
+        const x2 = cx + r * Math.cos(endAngle);
+        const y2 = cy + r * Math.sin(endAngle);
+
+        const largeArc = endAngle - startAngle > Math.PI ? 1 : 0;
+
+        const d = [
+            `M ${cx} ${cy}`,
+            `L ${x1} ${y1}`,
+            `A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`,
+            'Z'
+        ].join(' ');
+
+        const path = this.createPath(d, {
+            fill: color,
+            stroke: '#fff',
+            strokeWidth: 2
+        });
+
+        return path;
+    }
+
+    // ===== Class Diagram Renderer =====
+    renderClassDiagram(data) {
+        const cfg = this.config.class;
+
+        // 클래스 위치 계산
+        const positions = new Map();
+        const cols = Math.ceil(Math.sqrt(data.classes.length));
+
+        data.classes.forEach((cls, index) => {
+            const col = index % cols;
+            const row = Math.floor(index / cols);
+            const classHeight = this.calculateClassHeight(cls);
+
+            positions.set(cls.name, {
+                x: cfg.padding + col * (cfg.classWidth + cfg.classSpacing),
+                y: cfg.padding + row * (classHeight + cfg.classSpacing),
+                width: cfg.classWidth,
+                height: classHeight
+            });
+        });
+
+        // 전체 크기 계산
+        let maxX = 0, maxY = 0;
+        positions.forEach(pos => {
+            maxX = Math.max(maxX, pos.x + pos.width);
+            maxY = Math.max(maxY, pos.y + pos.height);
+        });
+
+        const width = maxX + cfg.padding;
+        const height = maxY + cfg.padding;
+
+        const svg = this.createSvg(width, height);
+
+        // 관계선 그리기
+        data.relations.forEach(rel => {
+            const fromPos = positions.get(rel.from);
+            const toPos = positions.get(rel.to);
+            if (fromPos && toPos) {
+                const relationGroup = this.drawClassRelation(fromPos, toPos, rel);
+                svg.appendChild(relationGroup);
+            }
+        });
+
+        // 클래스 그리기
+        data.classes.forEach(cls => {
+            const pos = positions.get(cls.name);
+            if (pos) {
+                const classGroup = this.drawClass(cls, pos.x, pos.y, cfg);
+                svg.appendChild(classGroup);
+            }
+        });
+
+        this.container.appendChild(svg);
+        return svg;
+    }
+
+    calculateClassHeight(cls) {
+        const headerHeight = 35;
+        const attrHeight = cls.attributes.length * 20;
+        const methodHeight = cls.methods.length * 20;
+        const minHeight = 80;
+
+        return Math.max(minHeight, headerHeight + attrHeight + methodHeight + 20);
+    }
+
+    drawClass(cls, x, y, cfg) {
+        const group = this.createGroup();
+        const height = this.calculateClassHeight(cls);
+
+        // 배경
+        const bg = this.createRect(x, y, cfg.classWidth, height, {
+            fill: '#fff', stroke: '#2C3E50', rx: 0, filter: 'url(#shadow)'
+        });
+        group.appendChild(bg);
+
+        // 헤더 배경
+        const headerBg = this.createRect(x, y, cfg.classWidth, 35, {
+            fill: cls.stereotype ? '#E8F6F3' : '#EBF5FB', stroke: 'none', rx: 0
+        });
+        group.appendChild(headerBg);
+
+        // 스테레오타입
+        let headerY = y + 12;
+        if (cls.stereotype) {
+            const stereotype = this.createText(x + cfg.classWidth / 2, headerY, `<<${cls.stereotype}>>`, {
+                fontSize: '10', fill: '#7F8C8D', fontStyle: 'italic'
+            });
+            group.appendChild(stereotype);
+            headerY += 14;
+        }
+
+        // 클래스 이름
+        const name = this.createText(x + cfg.classWidth / 2, cls.stereotype ? headerY : y + 20, cls.name, {
+            fontSize: '14', fontWeight: 'bold', fill: '#2C3E50'
+        });
+        group.appendChild(name);
+
+        // 구분선
+        const line1 = this.createLine(x, y + 35, x + cfg.classWidth, y + 35, { stroke: '#2C3E50' });
+        group.appendChild(line1);
+
+        // 속성
+        let attrY = y + 50;
+        cls.attributes.forEach(attr => {
+            const visibility = this.getVisibilitySymbol(attr.visibility);
+            const attrText = this.createText(x + 10, attrY, `${visibility} ${attr.name}`, {
+                fontSize: '12', fill: '#2C3E50', anchor: 'start'
+            });
+            group.appendChild(attrText);
+            attrY += 20;
+        });
+
+        // 구분선 (속성과 메서드 사이)
+        if (cls.attributes.length > 0 || cls.methods.length > 0) {
+            const line2 = this.createLine(x, attrY - 5, x + cfg.classWidth, attrY - 5, { stroke: '#BDC3C7' });
+            group.appendChild(line2);
+        }
+
+        // 메서드
+        let methodY = attrY + 10;
+        cls.methods.forEach(method => {
+            const visibility = this.getVisibilitySymbol(method.visibility);
+            const methodText = this.createText(x + 10, methodY, `${visibility} ${method.name}`, {
+                fontSize: '12', fill: '#2C3E50', anchor: 'start'
+            });
+            group.appendChild(methodText);
+            methodY += 20;
+        });
+
+        return group;
+    }
+
+    getVisibilitySymbol(v) {
+        switch (v) {
+            case '+': return '+';
+            case '-': return '-';
+            case '#': return '#';
+            case '~': return '~';
+            default: return '+';
+        }
+    }
+
+    drawClassRelation(from, to, rel) {
+        const group = this.createGroup();
+
+        const fromCx = from.x + from.width / 2;
+        const fromCy = from.y + from.height / 2;
+        const toCx = to.x + to.width / 2;
+        const toCy = to.y + to.height / 2;
+
+        // 연결점 계산
+        let startX, startY, endX, endY;
+
+        if (Math.abs(fromCx - toCx) > Math.abs(fromCy - toCy)) {
+            // 가로 연결
+            if (fromCx < toCx) {
+                startX = from.x + from.width;
+                endX = to.x;
+            } else {
+                startX = from.x;
+                endX = to.x + to.width;
+            }
+            startY = fromCy;
+            endY = toCy;
+        } else {
+            // 세로 연결
+            startX = fromCx;
+            endX = toCx;
+            if (fromCy < toCy) {
+                startY = from.y + from.height;
+                endY = to.y;
+            } else {
+                startY = from.y;
+                endY = to.y + to.height;
+            }
+        }
+
+        // 선 스타일
+        let strokeDash = null;
+        if (rel.type === 'dependency') strokeDash = '5,5';
+
+        const line = this.createLine(startX, startY, endX, endY, {
+            stroke: '#2C3E50',
+            strokeWidth: 1.5,
+            strokeDasharray: strokeDash
+        });
+        group.appendChild(line);
+
+        // 화살표/마커 그리기
+        const markerGroup = this.drawRelationMarker(endX, endY, startX, startY, rel.type);
+        group.appendChild(markerGroup);
+
+        // 라벨
+        if (rel.label) {
+            const midX = (startX + endX) / 2;
+            const midY = (startY + endY) / 2;
+            const label = this.createText(midX, midY - 8, rel.label, {
+                fontSize: '10', fill: '#7F8C8D'
+            });
+            group.appendChild(label);
+        }
+
+        return group;
+    }
+
+    drawRelationMarker(x, y, fromX, fromY, type) {
+        const group = this.createGroup();
+        const angle = Math.atan2(y - fromY, x - fromX);
+        const size = 12;
+
+        const x1 = x - size * Math.cos(angle - Math.PI / 6);
+        const y1 = y - size * Math.sin(angle - Math.PI / 6);
+        const x2 = x - size * Math.cos(angle + Math.PI / 6);
+        const y2 = y - size * Math.sin(angle + Math.PI / 6);
+
+        if (type === 'inheritance') {
+            // 빈 삼각형
+            const triangle = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            triangle.setAttribute('points', `${x},${y} ${x1},${y1} ${x2},${y2}`);
+            triangle.setAttribute('fill', '#fff');
+            triangle.setAttribute('stroke', '#2C3E50');
+            triangle.setAttribute('stroke-width', '1.5');
+            group.appendChild(triangle);
+        } else if (type === 'composition') {
+            // 채워진 다이아몬드
+            const mx = x - size * 0.7 * Math.cos(angle);
+            const my = y - size * 0.7 * Math.sin(angle);
+            const diamond = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            diamond.setAttribute('points', `${x},${y} ${x1},${y1} ${mx},${my} ${x2},${y2}`);
+            diamond.setAttribute('fill', '#2C3E50');
+            diamond.setAttribute('stroke', '#2C3E50');
+            group.appendChild(diamond);
+        } else if (type === 'aggregation') {
+            // 빈 다이아몬드
+            const mx = x - size * 0.7 * Math.cos(angle);
+            const my = y - size * 0.7 * Math.sin(angle);
+            const diamond = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            diamond.setAttribute('points', `${x},${y} ${x1},${y1} ${mx},${my} ${x2},${y2}`);
+            diamond.setAttribute('fill', '#fff');
+            diamond.setAttribute('stroke', '#2C3E50');
+            diamond.setAttribute('stroke-width', '1.5');
+            group.appendChild(diamond);
+        } else {
+            // 일반 화살표
+            const arrow = this.createPath(`M ${x1} ${y1} L ${x} ${y} L ${x2} ${y2}`, {
+                stroke: '#2C3E50',
+                strokeWidth: 1.5,
+                fill: 'none'
+            });
+            group.appendChild(arrow);
+        }
+
+        return group;
+    }
+
+    // ===== ER Diagram Renderer =====
+    renderErDiagram(data) {
+        const cfg = this.config.er;
+
+        // 엔티티 위치 계산
+        const positions = new Map();
+        const cols = Math.ceil(Math.sqrt(data.entities.length));
+
+        data.entities.forEach((entity, index) => {
+            const col = index % cols;
+            const row = Math.floor(index / cols);
+            const entityHeight = this.calculateEntityHeight(entity);
+
+            positions.set(entity.name, {
+                x: cfg.padding + col * (cfg.entityWidth + cfg.entitySpacing),
+                y: cfg.padding + row * (entityHeight + cfg.entitySpacing),
+                width: cfg.entityWidth,
+                height: entityHeight
+            });
+        });
+
+        // 전체 크기 계산
+        let maxX = 0, maxY = 0;
+        positions.forEach(pos => {
+            maxX = Math.max(maxX, pos.x + pos.width);
+            maxY = Math.max(maxY, pos.y + pos.height);
+        });
+
+        const width = maxX + cfg.padding;
+        const height = maxY + cfg.padding;
+
+        const svg = this.createSvg(width, height);
+
+        // 관계선 그리기
+        data.relations.forEach(rel => {
+            const fromPos = positions.get(rel.from);
+            const toPos = positions.get(rel.to);
+            if (fromPos && toPos) {
+                const relationGroup = this.drawErRelation(fromPos, toPos, rel);
+                svg.appendChild(relationGroup);
+            }
+        });
+
+        // 엔티티 그리기
+        data.entities.forEach(entity => {
+            const pos = positions.get(entity.name);
+            if (pos) {
+                const entityGroup = this.drawEntity(entity, pos.x, pos.y, cfg);
+                svg.appendChild(entityGroup);
+            }
+        });
+
+        this.container.appendChild(svg);
+        return svg;
+    }
+
+    calculateEntityHeight(entity) {
+        const headerHeight = 35;
+        const attrHeight = entity.attributes.length * 22;
+        const minHeight = 60;
+
+        return Math.max(minHeight, headerHeight + attrHeight + 10);
+    }
+
+    drawEntity(entity, x, y, cfg) {
+        const group = this.createGroup();
+        const height = this.calculateEntityHeight(entity);
+
+        // 배경
+        const bg = this.createRect(x, y, cfg.entityWidth, height, {
+            fill: '#fff', stroke: '#3498DB', strokeWidth: 2, rx: 4, filter: 'url(#shadow)'
+        });
+        group.appendChild(bg);
+
+        // 헤더 배경
+        const headerBg = this.createRect(x, y, cfg.entityWidth, 35, {
+            fill: '#3498DB', stroke: 'none', rx: 4
+        });
+        group.appendChild(headerBg);
+
+        // 하단 모서리 가리기
+        const headerBg2 = this.createRect(x, y + 25, cfg.entityWidth, 10, {
+            fill: '#3498DB', stroke: 'none', rx: 0
+        });
+        group.appendChild(headerBg2);
+
+        // 엔티티 이름
+        const name = this.createText(x + cfg.entityWidth / 2, y + 20, entity.name, {
+            fontSize: '14', fontWeight: 'bold', fill: '#fff'
+        });
+        group.appendChild(name);
+
+        // 속성
+        let attrY = y + 50;
+        entity.attributes.forEach(attr => {
+            const keyIcon = attr.key === 'PK' ? 'PK ' : attr.key === 'FK' ? 'FK ' : attr.key === 'UK' ? 'UK ' : '';
+            const attrText = `${keyIcon}${attr.type} ${attr.name}`;
+
+            const text = this.createText(x + 10, attrY, attrText, {
+                fontSize: '11', fill: attr.key ? '#E74C3C' : '#2C3E50', anchor: 'start'
+            });
+            group.appendChild(text);
+            attrY += 22;
+        });
+
+        return group;
+    }
+
+    drawErRelation(from, to, rel) {
+        const group = this.createGroup();
+
+        const fromCx = from.x + from.width / 2;
+        const fromCy = from.y + from.height / 2;
+        const toCx = to.x + to.width / 2;
+        const toCy = to.y + to.height / 2;
+
+        // 연결점 계산
+        let startX, startY, endX, endY;
+
+        if (Math.abs(fromCx - toCx) > Math.abs(fromCy - toCy)) {
+            if (fromCx < toCx) {
+                startX = from.x + from.width;
+                endX = to.x;
+            } else {
+                startX = from.x;
+                endX = to.x + to.width;
+            }
+            startY = fromCy;
+            endY = toCy;
+        } else {
+            startX = fromCx;
+            endX = toCx;
+            if (fromCy < toCy) {
+                startY = from.y + from.height;
+                endY = to.y;
+            } else {
+                startY = from.y;
+                endY = to.y + to.height;
+            }
+        }
+
+        // 선 그리기
+        const line = this.createLine(startX, startY, endX, endY, {
+            stroke: '#7F8C8D',
+            strokeWidth: 1.5
+        });
+        group.appendChild(line);
+
+        // 카디널리티 마커
+        this.drawCardinalityMarker(group, startX, startY, endX, endY, rel.leftCardinality, true);
+        this.drawCardinalityMarker(group, endX, endY, startX, startY, rel.rightCardinality, false);
+
+        // 라벨
+        if (rel.label) {
+            const midX = (startX + endX) / 2;
+            const midY = (startY + endY) / 2;
+
+            const labelBg = this.createRect(midX - 40, midY - 10, 80, 20, {
+                fill: '#fff', stroke: 'none'
+            });
+            group.appendChild(labelBg);
+
+            const label = this.createText(midX, midY + 4, rel.label, {
+                fontSize: '11', fill: '#2C3E50'
+            });
+            group.appendChild(label);
+        }
+
+        return group;
+    }
+
+    drawCardinalityMarker(group, x, y, fromX, fromY, cardinality) {
+        const angle = Math.atan2(y - fromY, x - fromX);
+        const offset = 20;
+        const markerX = x - offset * Math.cos(angle);
+        const markerY = y - offset * Math.sin(angle);
+
+        let symbol = '1';
+        if (cardinality === 'many') symbol = '*';
+        else if (cardinality === 'zero-or-one') symbol = '0..1';
+
+        const text = this.createText(markerX, markerY - 8, symbol, {
+            fontSize: '10', fill: '#7F8C8D'
+        });
+        group.appendChild(text);
+    }
+
+    // ===== Gantt Chart Renderer =====
+    renderGantt(data) {
+        const cfg = this.config.gantt;
+
+        // 모든 태스크 수집
+        const allTasks = [];
+        data.sections.forEach(section => {
+            if (section.name !== 'default' || section.tasks.length > 0) {
+                allTasks.push(...section.tasks);
+            }
+        });
+
+        // 날짜 범위 계산
+        let minDate = new Date();
+        let maxDate = new Date();
+
+        allTasks.forEach((task, index) => {
+            if (task.start) {
+                const start = new Date(task.start);
+                const end = task.end ? new Date(task.end) : new Date(start.getTime() + (task.duration || 1) * 24 * 60 * 60 * 1000);
+
+                if (index === 0 || start < minDate) minDate = start;
+                if (index === 0 || end > maxDate) maxDate = end;
+            } else {
+                // 기본 날짜 사용
+                if (index === 0) {
+                    minDate = new Date();
+                    maxDate = new Date(minDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+                }
+            }
+        });
+
+        const totalDays = Math.ceil((maxDate - minDate) / (24 * 60 * 60 * 1000)) + 1;
+        const chartWidth = cfg.labelWidth + totalDays * cfg.dayWidth;
+
+        // 섹션별 행 수 계산
+        let totalRows = 0;
+        data.sections.forEach(section => {
+            if (section.name !== 'default') totalRows++; // 섹션 헤더
+            totalRows += section.tasks.length;
+        });
+
+        const height = cfg.padding * 2 + (data.title ? 40 : 0) + 30 + totalRows * cfg.rowHeight;
+        const width = chartWidth + cfg.padding * 2;
+
+        const svg = this.createSvg(width, height);
+
+        let currentY = cfg.padding;
+
+        // 타이틀
+        if (data.title) {
+            const title = this.createText(width / 2, currentY + 15, data.title, {
+                fontSize: '18', fontWeight: 'bold', fill: '#2C3E50'
+            });
+            svg.appendChild(title);
+            currentY += 40;
+        }
+
+        // 날짜 헤더
+        const headerY = currentY;
+        for (let i = 0; i <= totalDays; i++) {
+            const date = new Date(minDate.getTime() + i * 24 * 60 * 60 * 1000);
+            const x = cfg.padding + cfg.labelWidth + i * cfg.dayWidth;
+
+            // 날짜 텍스트
+            const dayText = this.createText(x + cfg.dayWidth / 2, headerY + 15, date.getDate().toString(), {
+                fontSize: '10', fill: '#7F8C8D'
+            });
+            svg.appendChild(dayText);
+
+            // 수직 그리드선
+            const gridLine = this.createLine(x, headerY + 25, x, height - cfg.padding, {
+                stroke: '#ECF0F1', strokeWidth: 1
+            });
+            svg.appendChild(gridLine);
+        }
+        currentY += 30;
+
+        // 태스크 그리기
+        data.sections.forEach(section => {
+            // 섹션 헤더
+            if (section.name !== 'default') {
+                const sectionBg = this.createRect(cfg.padding, currentY, chartWidth, cfg.rowHeight, {
+                    fill: '#F8F9FA', stroke: 'none'
+                });
+                svg.appendChild(sectionBg);
+
+                const sectionText = this.createText(cfg.padding + 10, currentY + cfg.rowHeight / 2 + 4, section.name, {
+                    fontSize: '12', fontWeight: 'bold', fill: '#2C3E50', anchor: 'start'
+                });
+                svg.appendChild(sectionText);
+                currentY += cfg.rowHeight;
+            }
+
+            // 태스크들
+            section.tasks.forEach(task => {
+                // 태스크 라벨
+                const label = this.createText(cfg.padding + 10, currentY + cfg.rowHeight / 2 + 4, task.name, {
+                    fontSize: '11', fill: '#2C3E50', anchor: 'start'
+                });
+                svg.appendChild(label);
+
+                // 태스크 바
+                if (task.start) {
+                    const startDate = new Date(task.start);
+                    const duration = task.duration || 1;
+                    const startOffset = Math.floor((startDate - minDate) / (24 * 60 * 60 * 1000));
+                    const barX = cfg.padding + cfg.labelWidth + startOffset * cfg.dayWidth;
+                    const barWidth = duration * cfg.dayWidth - 4;
+
+                    let barColor = '#3498DB';
+                    if (task.status === 'done') barColor = '#2ECC71';
+                    else if (task.status === 'active') barColor = '#F39C12';
+                    else if (task.status === 'crit') barColor = '#E74C3C';
+
+                    const bar = this.createRect(barX + 2, currentY + 8, barWidth, cfg.rowHeight - 16, {
+                        fill: barColor, stroke: 'none', rx: 3
+                    });
+                    svg.appendChild(bar);
+                }
+
+                currentY += cfg.rowHeight;
+            });
+        });
+
+        this.container.appendChild(svg);
+        return svg;
+    }
+
+    // ===== User Journey Renderer =====
+    renderJourney(data) {
+        const cfg = this.config.journey;
+
+        // 모든 태스크 수집
+        const allTasks = [];
+        data.sections.forEach(section => {
+            allTasks.push(...section.tasks);
+        });
+
+        const totalSteps = allTasks.length;
+        const width = cfg.padding * 2 + totalSteps * cfg.stepWidth + 100;
+        const height = cfg.padding * 2 + (data.title ? 50 : 0) + cfg.stepHeight + 150;
+
+        const svg = this.createSvg(width, height);
+
+        let currentY = cfg.padding;
+
+        // 타이틀
+        if (data.title) {
+            const title = this.createText(width / 2, currentY + 20, data.title, {
+                fontSize: '20', fontWeight: 'bold', fill: '#2C3E50'
+            });
+            svg.appendChild(title);
+            currentY += 50;
+        }
+
+        // 감정선 그리기 (배경)
+        const chartStartX = cfg.padding + 50;
+        const chartEndX = chartStartX + totalSteps * cfg.stepWidth;
+        const chartCenterY = currentY + cfg.stepHeight / 2;
+
+        // 감정 레벨 가이드라인
+        for (let i = 1; i <= 5; i++) {
+            const y = chartCenterY + (3 - i) * 20;
+            const line = this.createLine(chartStartX, y, chartEndX, y, {
+                stroke: '#ECF0F1', strokeWidth: 1, strokeDasharray: '3,3'
+            });
+            svg.appendChild(line);
+
+            // 점수 라벨
+            const scoreLabel = this.createText(chartStartX - 15, y + 4, i.toString(), {
+                fontSize: '10', fill: '#BDC3C7'
+            });
+            svg.appendChild(scoreLabel);
+        }
+
+        // 감정 라인 포인트 수집
+        const points = [];
+        let stepX = chartStartX + cfg.stepWidth / 2;
+
+        allTasks.forEach((task, index) => {
+            const scoreY = chartCenterY + (3 - task.score) * 20;
+            points.push({ x: stepX, y: scoreY, task });
+            stepX += cfg.stepWidth;
+        });
+
+        // 감정 라인 그리기
+        if (points.length > 1) {
+            let pathD = `M ${points[0].x} ${points[0].y}`;
+            for (let i = 1; i < points.length; i++) {
+                const cp1x = (points[i - 1].x + points[i].x) / 2;
+                pathD += ` C ${cp1x} ${points[i - 1].y}, ${cp1x} ${points[i].y}, ${points[i].x} ${points[i].y}`;
+            }
+
+            const emotionLine = this.createPath(pathD, {
+                stroke: '#3498DB', strokeWidth: 3, fill: 'none'
+            });
+            svg.appendChild(emotionLine);
+        }
+
+        // 포인트 및 라벨 그리기
+        points.forEach((point, index) => {
+            // 포인트 색상 (점수에 따라)
+            let pointColor = '#F39C12';
+            if (point.task.score >= 4) pointColor = '#2ECC71';
+            else if (point.task.score <= 2) pointColor = '#E74C3C';
+
+            // 포인트
+            const circle = this.createCircle(point.x, point.y, 8, {
+                fill: pointColor, stroke: '#fff', strokeWidth: 2
+            });
+            svg.appendChild(circle);
+
+            // 태스크 이름
+            const label = this.createText(point.x, currentY + cfg.stepHeight + 30, point.task.name, {
+                fontSize: '11', fill: '#2C3E50'
+            });
+            svg.appendChild(label);
+
+            // 액터
+            if (point.task.actors && point.task.actors.length > 0) {
+                const actorText = this.createText(point.x, currentY + cfg.stepHeight + 48, point.task.actors.join(', '), {
+                    fontSize: '9', fill: '#7F8C8D'
+                });
+                svg.appendChild(actorText);
+            }
+        });
+
+        // 섹션 라벨
+        let sectionX = chartStartX;
+        data.sections.forEach(section => {
+            if (section.name !== 'default' && section.tasks.length > 0) {
+                const sectionWidth = section.tasks.length * cfg.stepWidth;
+                const sectionLabel = this.createText(sectionX + sectionWidth / 2, currentY - 15, section.name, {
+                    fontSize: '12', fontWeight: 'bold', fill: '#9B59B6'
+                });
+                svg.appendChild(sectionLabel);
+
+                // 섹션 구분선
+                const divider = this.createLine(sectionX + sectionWidth, currentY - 25, sectionX + sectionWidth, currentY + cfg.stepHeight + 60, {
+                    stroke: '#ECF0F1', strokeWidth: 1, strokeDasharray: '5,5'
+                });
+                svg.appendChild(divider);
+
+                sectionX += sectionWidth;
+            }
+        });
+
+        this.container.appendChild(svg);
+        return svg;
     }
 
     showError(message) {

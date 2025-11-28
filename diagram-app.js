@@ -172,6 +172,186 @@ const EXAMPLES = {
             Node.js
             MongoDB`
         }
+    ],
+    pie: [
+        {
+            name: '시장 점유율',
+            description: '브라우저 시장 점유율',
+            code: `pie showData title 브라우저 시장 점유율
+    "Chrome" : 65
+    "Safari" : 19
+    "Firefox" : 8
+    "Edge" : 5
+    "기타" : 3`
+        },
+        {
+            name: '프로젝트 예산',
+            description: '부서별 예산 배분',
+            code: `pie title 부서별 예산 배분
+    "개발" : 40
+    "마케팅" : 25
+    "운영" : 20
+    "인사" : 15`
+        }
+    ],
+    class: [
+        {
+            name: '동물 클래스',
+            description: '상속 관계 예제',
+            code: `classDiagram
+    Animal <|-- Dog
+    Animal <|-- Cat
+    Animal : +String name
+    Animal : +int age
+    Animal : +makeSound()
+    Dog : +String breed
+    Dog : +bark()
+    Cat : +String color
+    Cat : +meow()`
+        },
+        {
+            name: '주문 시스템',
+            description: 'e커머스 클래스 다이어그램',
+            code: `classDiagram
+    Customer "1" --> "*" Order
+    Order *-- OrderItem
+    Order o-- Payment
+    Customer : +String name
+    Customer : +String email
+    Customer : +placeOrder()
+    Order : +Date orderDate
+    Order : +getTotal()
+    OrderItem : +int quantity
+    Payment : +processPayment()`
+        }
+    ],
+    er: [
+        {
+            name: '사용자-주문',
+            description: '기본 ER 다이어그램',
+            code: `erDiagram
+    USER ||--o{ ORDER : places
+    ORDER ||--|{ ORDER_ITEM : contains
+    PRODUCT ||--o{ ORDER_ITEM : includes
+
+    USER {
+        int id PK
+        string name
+        string email UK
+    }
+    ORDER {
+        int id PK
+        int user_id FK
+        date created_at
+    }
+    PRODUCT {
+        int id PK
+        string name
+        float price
+    }`
+        },
+        {
+            name: '블로그 시스템',
+            description: '블로그 데이터베이스 설계',
+            code: `erDiagram
+    USER ||--o{ POST : writes
+    POST ||--o{ COMMENT : has
+    USER ||--o{ COMMENT : writes
+    POST }o--o{ TAG : tagged
+
+    USER {
+        int id PK
+        string username UK
+        string password
+    }
+    POST {
+        int id PK
+        string title
+        text content
+    }`
+        }
+    ],
+    gantt: [
+        {
+            name: '프로젝트 일정',
+            description: '소프트웨어 개발 일정',
+            code: `gantt
+    title 프로젝트 개발 일정
+    dateFormat YYYY-MM-DD
+
+    section 기획
+    요구사항 분석 : done, 2024-01-01, 7d
+    기획서 작성 : done, 2024-01-08, 5d
+
+    section 설계
+    시스템 설계 : active, 2024-01-13, 7d
+    DB 설계 : 2024-01-15, 5d
+
+    section 개발
+    백엔드 개발 : 2024-01-20, 14d
+    프론트엔드 개발 : 2024-01-22, 14d
+
+    section 테스트
+    통합 테스트 : crit, 2024-02-05, 7d
+    배포 : 2024-02-12, 2d`
+        },
+        {
+            name: '마케팅 캠페인',
+            description: '캠페인 진행 일정',
+            code: `gantt
+    title 마케팅 캠페인 일정
+    dateFormat YYYY-MM-DD
+
+    section 준비
+    시장 조사 : 2024-01-01, 5d
+    전략 수립 : 2024-01-06, 3d
+
+    section 실행
+    콘텐츠 제작 : 2024-01-09, 7d
+    광고 집행 : 2024-01-16, 14d
+
+    section 분석
+    성과 분석 : 2024-01-30, 5d`
+        }
+    ],
+    journey: [
+        {
+            name: '쇼핑 경험',
+            description: '온라인 쇼핑 사용자 여정',
+            code: `journey
+    title 온라인 쇼핑 경험
+
+    section 탐색
+    홈페이지 방문: 5: 고객
+    상품 검색: 4: 고객
+    상품 상세 확인: 4: 고객
+
+    section 구매
+    장바구니 담기: 5: 고객
+    결제 진행: 3: 고객
+    결제 완료: 5: 고객
+
+    section 배송
+    배송 추적: 4: 고객
+    상품 수령: 5: 고객
+    리뷰 작성: 3: 고객`
+        },
+        {
+            name: '고객 지원',
+            description: '고객 서비스 이용 여정',
+            code: `journey
+    title 고객 지원 경험
+
+    section 문의
+    문제 발생: 1: 고객
+    FAQ 검색: 3: 고객
+    채팅 상담: 4: 고객, 상담원
+
+    section 해결
+    문제 접수: 3: 상담원
+    해결책 제시: 4: 상담원
+    문제 해결: 5: 고객, 상담원`
+        }
     ]
 };
 
@@ -246,6 +426,85 @@ Note right of A: 오른쪽 노트</code></pre>
     레벨1 항목
         레벨2 항목
             레벨3 항목</code></pre>
+    </div>`,
+
+    pie: `<div class="help-section">
+        <h4>기본 구조</h4>
+        <pre><code>pie showData title 차트 제목
+    "항목1" : 값1
+    "항목2" : 값2</code></pre>
+    </div>
+    <div class="help-section">
+        <h4>옵션</h4>
+        <pre><code>showData  %% 퍼센트 표시
+title 제목</code></pre>
+    </div>`,
+
+    class: `<div class="help-section">
+        <h4>클래스 정의</h4>
+        <pre><code>class ClassName
+ClassName : +attribute
+ClassName : +method()</code></pre>
+    </div>
+    <div class="help-section">
+        <h4>관계</h4>
+        <pre><code>A <|-- B  %% 상속
+A *-- B   %% 컴포지션
+A o-- B   %% 집합
+A --> B   %% 연관</code></pre>
+    </div>
+    <div class="help-section">
+        <h4>접근제어자</h4>
+        <pre><code>+ public
+- private
+# protected
+~ package</code></pre>
+    </div>`,
+
+    er: `<div class="help-section">
+        <h4>관계 표현</h4>
+        <pre><code>A ||--o{ B : 관계명
+%% ||  : 1
+%% o{  : 0 이상
+%% |{  : 1 이상</code></pre>
+    </div>
+    <div class="help-section">
+        <h4>엔티티 속성</h4>
+        <pre><code>ENTITY {
+    type name PK
+    type name FK
+}</code></pre>
+    </div>`,
+
+    gantt: `<div class="help-section">
+        <h4>기본 구조</h4>
+        <pre><code>gantt
+    title 제목
+    dateFormat YYYY-MM-DD
+
+    section 섹션명
+    태스크명 : 시작일, 기간</code></pre>
+    </div>
+    <div class="help-section">
+        <h4>태스크 상태</h4>
+        <pre><code>태스크 : done, 날짜, 5d
+태스크 : active, 날짜, 3d
+태스크 : crit, 날짜, 2d</code></pre>
+    </div>`,
+
+    journey: `<div class="help-section">
+        <h4>기본 구조</h4>
+        <pre><code>journey
+    title 여정 제목
+
+    section 단계명
+    태스크: 점수: 액터</code></pre>
+    </div>
+    <div class="help-section">
+        <h4>점수</h4>
+        <pre><code>1-2: 부정적 경험 (빨강)
+3: 보통 (노랑)
+4-5: 긍정적 경험 (초록)</code></pre>
     </div>`
 };
 
