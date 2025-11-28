@@ -907,6 +907,707 @@ spacer [크기]</code></pre>
     </div>`
 };
 
+// 와이어프레임 컴포넌트 레퍼런스 데이터
+const COMPONENT_REFERENCE = {
+    categories: [
+        { id: 'structure', name: '📱 구조', icon: '📱' },
+        { id: 'form', name: '📝 폼', icon: '📝' },
+        { id: 'data', name: '📊 데이터', icon: '📊' },
+        { id: 'navigation', name: '🧭 내비게이션', icon: '🧭' },
+        { id: 'container', name: '📦 컨테이너', icon: '📦' },
+        { id: 'media', name: '🎨 미디어', icon: '🎨' },
+        { id: 'feedback', name: '💬 피드백', icon: '💬' },
+        { id: 'other', name: '🔧 기타', icon: '🔧' }
+    ],
+    components: {
+        structure: [
+            {
+                name: 'wireframe',
+                icon: '📄',
+                description: '와이어프레임의 시작을 선언합니다. 페이지 이름을 지정할 수 있습니다.',
+                syntax: 'wireframe [페이지명]',
+                params: [
+                    { name: '페이지명', desc: '페이지 제목 (선택)', optional: true }
+                ],
+                examples: ['wireframe 로그인 페이지', 'wireframe 대시보드', 'wireframe']
+            },
+            {
+                name: 'device',
+                icon: '📱',
+                description: '디바이스 크기를 설정합니다. mobile(375x667), tablet(768x1024), desktop(1200x800).',
+                syntax: 'device mobile|tablet|desktop',
+                params: [
+                    { name: 'mobile', desc: '375x667 크기의 모바일 화면' },
+                    { name: 'tablet', desc: '768x1024 크기의 태블릿 화면' },
+                    { name: 'desktop', desc: '1200x800 크기의 데스크탑 화면' }
+                ],
+                examples: ['device mobile', 'device tablet', 'device desktop']
+            },
+            {
+                name: 'header',
+                icon: '🔝',
+                description: '페이지 상단 헤더 영역입니다. logo, nav, avatar, icon 등을 포함할 수 있습니다.',
+                syntax: 'header\\n    [내용]\\nend',
+                params: [
+                    { name: '내용', desc: 'logo, nav, avatar, icon, search 등' }
+                ],
+                examples: ['header\\n    logo "MyApp"\\n    nav "홈" "설정"\\nend']
+            },
+            {
+                name: 'footer',
+                icon: '🔚',
+                description: '페이지 하단 푸터 영역입니다.',
+                syntax: 'footer\\n    [내용]\\nend',
+                params: [
+                    { name: '내용', desc: 'link, text, button 등' }
+                ],
+                examples: ['footer\\n    link "이용약관"\\n    text "© 2024"\\nend']
+            },
+            {
+                name: 'sidebar',
+                icon: '📑',
+                description: '사이드바 영역입니다. 주로 메뉴 항목들을 포함합니다.',
+                syntax: 'sidebar\\n    [내용]\\nend',
+                params: [
+                    { name: '내용', desc: 'menu, divider, link 등' }
+                ],
+                examples: ['sidebar\\n    menu "홈" active\\n    menu "설정"\\nend']
+            },
+            {
+                name: 'section',
+                icon: '📋',
+                description: '콘텐츠 섹션을 정의합니다. 섹션명을 헤더로 표시합니다.',
+                syntax: 'section [섹션명]\\n    [내용]\\nend',
+                params: [
+                    { name: '섹션명', desc: '섹션 제목' }
+                ],
+                examples: ['section 로그인 폼\\n    input email "이메일"\\n    button primary "로그인"\\nend']
+            },
+            {
+                name: 'statusbar',
+                icon: '📶',
+                description: '모바일 상태바를 표시합니다 (시간, 배터리 등).',
+                syntax: 'statusbar',
+                params: [],
+                examples: ['statusbar']
+            },
+            {
+                name: 'bottomnav',
+                icon: '⬇️',
+                description: '모바일 하단 내비게이션 바입니다.',
+                syntax: 'bottomnav\\n    icon [아이콘명] [active]\\nend',
+                params: [
+                    { name: 'icon', desc: '아이콘 항목' },
+                    { name: 'active', desc: '활성 상태 표시 (선택)', optional: true }
+                ],
+                examples: ['bottomnav\\n    icon home active\\n    icon search\\n    icon user\\nend']
+            }
+        ],
+        form: [
+            {
+                name: 'input',
+                icon: '⌨️',
+                description: '텍스트 입력 필드입니다. 다양한 타입을 지원합니다.',
+                syntax: 'input [type] "[placeholder]"',
+                params: [
+                    { name: 'type', desc: 'text, email, password, number 등' },
+                    { name: 'placeholder', desc: '힌트 텍스트' }
+                ],
+                examples: ['input text "이름을 입력하세요"', 'input email "이메일 주소"', 'input password "비밀번호"']
+            },
+            {
+                name: 'textarea',
+                icon: '📝',
+                description: '여러 줄 텍스트 입력 영역입니다.',
+                syntax: 'textarea "[placeholder]"',
+                params: [
+                    { name: 'placeholder', desc: '힌트 텍스트' }
+                ],
+                examples: ['textarea "내용을 입력하세요..."', 'textarea "메모"']
+            },
+            {
+                name: 'button',
+                icon: '🔘',
+                description: '버튼입니다. primary(강조)와 secondary(보조) 스타일을 지원합니다.',
+                syntax: 'button primary|secondary "[라벨]"',
+                params: [
+                    { name: 'primary', desc: '강조 버튼 (파란색 배경)' },
+                    { name: 'secondary', desc: '보조 버튼 (회색 배경)' },
+                    { name: '라벨', desc: '버튼 텍스트' }
+                ],
+                examples: ['button primary "저장"', 'button secondary "취소"']
+            },
+            {
+                name: 'checkbox',
+                icon: '☑️',
+                description: '체크박스입니다.',
+                syntax: 'checkbox "[라벨]"',
+                params: [
+                    { name: '라벨', desc: '체크박스 옆에 표시될 텍스트' }
+                ],
+                examples: ['checkbox "이용약관에 동의합니다"', 'checkbox "자동 로그인"']
+            },
+            {
+                name: 'radio',
+                icon: '🔘',
+                description: '라디오 버튼입니다. checked 옵션으로 선택 상태를 표시합니다.',
+                syntax: 'radio "[라벨]" [checked]',
+                params: [
+                    { name: '라벨', desc: '라디오 버튼 옆에 표시될 텍스트' },
+                    { name: 'checked', desc: '선택된 상태로 표시 (선택)', optional: true }
+                ],
+                examples: ['radio "옵션 A"', 'radio "옵션 B" checked']
+            },
+            {
+                name: 'toggle',
+                icon: '🔀',
+                description: '토글 스위치입니다. on 옵션으로 켜진 상태를 표시합니다.',
+                syntax: 'toggle "[라벨]" [on]',
+                params: [
+                    { name: '라벨', desc: '토글 옆에 표시될 텍스트' },
+                    { name: 'on', desc: '켜진 상태로 표시 (선택)', optional: true }
+                ],
+                examples: ['toggle "알림 허용"', 'toggle "다크 모드" on']
+            },
+            {
+                name: 'dropdown',
+                icon: '🔽',
+                description: '드롭다운 선택 메뉴입니다.',
+                syntax: 'dropdown "[라벨]"',
+                params: [
+                    { name: '라벨', desc: '드롭다운에 표시될 텍스트' }
+                ],
+                examples: ['dropdown "카테고리 선택"', 'dropdown "정렬 방식"']
+            },
+            {
+                name: 'slider',
+                icon: '🎚️',
+                description: '슬라이더 컨트롤입니다. 0-100 사이의 값을 지정합니다.',
+                syntax: 'slider [값] "[라벨]"',
+                params: [
+                    { name: '값', desc: '0-100 사이의 숫자' },
+                    { name: '라벨', desc: '슬라이더 설명 (선택)', optional: true }
+                ],
+                examples: ['slider 50', 'slider 75 "볼륨"', 'slider 30 "밝기"']
+            },
+            {
+                name: 'date',
+                icon: '📅',
+                description: '날짜 선택 입력 필드입니다.',
+                syntax: 'date "[라벨]"',
+                params: [
+                    { name: '라벨', desc: '입력 필드에 표시될 텍스트' }
+                ],
+                examples: ['date "생년월일"', 'date "예약 날짜"']
+            },
+            {
+                name: 'time',
+                icon: '🕐',
+                description: '시간 선택 입력 필드입니다.',
+                syntax: 'time "[라벨]"',
+                params: [
+                    { name: '라벨', desc: '입력 필드에 표시될 텍스트' }
+                ],
+                examples: ['time "시작 시간"', 'time "예약 시간"']
+            },
+            {
+                name: 'file',
+                icon: '📁',
+                description: '파일 업로드 영역입니다. 점선 테두리로 드래그 앤 드롭을 암시합니다.',
+                syntax: 'file "[라벨]"',
+                params: [
+                    { name: '라벨', desc: '업로드 영역에 표시될 안내 텍스트' }
+                ],
+                examples: ['file "파일을 드래그하거나 클릭하세요"', 'file "이미지 업로드"']
+            },
+            {
+                name: 'color',
+                icon: '🎨',
+                description: '색상 선택 입력 필드입니다.',
+                syntax: 'color "[라벨]"',
+                params: [
+                    { name: '라벨', desc: '입력 필드에 표시될 텍스트' }
+                ],
+                examples: ['color "테마 색상"', 'color "배경색 선택"']
+            }
+        ],
+        data: [
+            {
+                name: 'text',
+                icon: '📝',
+                description: '일반 텍스트를 표시합니다.',
+                syntax: 'text "[내용]"',
+                params: [
+                    { name: '내용', desc: '표시할 텍스트' }
+                ],
+                examples: ['text "안녕하세요"', 'text "© 2024 Company"']
+            },
+            {
+                name: 'heading',
+                icon: '🔤',
+                description: '제목 텍스트입니다. 레벨(1-4)에 따라 크기가 달라집니다.',
+                syntax: 'heading [1-4] "[텍스트]"',
+                params: [
+                    { name: '레벨', desc: '1(가장 큼) ~ 4(가장 작음)' },
+                    { name: '텍스트', desc: '제목 내용' }
+                ],
+                examples: ['heading 1 "큰 제목"', 'heading 2 "중간 제목"', 'heading 3 "작은 제목"']
+            },
+            {
+                name: 'paragraph',
+                icon: '📄',
+                description: '문단 텍스트입니다. 회색 색상으로 표시됩니다.',
+                syntax: 'paragraph "[텍스트]"',
+                params: [
+                    { name: '텍스트', desc: '문단 내용' }
+                ],
+                examples: ['paragraph "이것은 설명 텍스트입니다."']
+            },
+            {
+                name: 'card',
+                icon: '🃏',
+                description: '통계 카드입니다. 제목, 값, 변화율을 표시합니다.',
+                syntax: 'card "[제목]" "[값]" "[변화]"',
+                params: [
+                    { name: '제목', desc: '카드 상단 라벨' },
+                    { name: '값', desc: '주요 수치' },
+                    { name: '변화', desc: '변화율 (선택, +는 초록, -는 빨강)', optional: true }
+                ],
+                examples: ['card "총 매출" "₩1,234,567" "+12%"', 'card "방문자" "1,234" "-5%"']
+            },
+            {
+                name: 'stats',
+                icon: '📈',
+                description: '통계 표시 컴포넌트입니다. 아이콘과 함께 라벨과 값을 표시합니다.',
+                syntax: 'stats "[라벨]" "[값]" [아이콘]',
+                params: [
+                    { name: '라벨', desc: '통계 항목명' },
+                    { name: '값', desc: '통계 수치' },
+                    { name: '아이콘', desc: '아이콘 이름 (선택)', optional: true }
+                ],
+                examples: ['stats "총 사용자" "12,345"', 'stats "매출" "₩1,234,567" cart']
+            },
+            {
+                name: 'table',
+                icon: '📊',
+                description: '테이블입니다. 컬럼명을 지정하면 헤더와 예시 행이 표시됩니다.',
+                syntax: 'table "[컬럼1]" "[컬럼2]" ...',
+                params: [
+                    { name: '컬럼', desc: '테이블 헤더 컬럼명들' }
+                ],
+                examples: ['table "이름" "이메일" "가입일"', 'table "상품" "가격" "수량"']
+            },
+            {
+                name: 'chart',
+                icon: '📉',
+                description: '차트 플레이스홀더입니다. bar, line, pie 타입을 지원합니다.',
+                syntax: 'chart bar|line|pie "[제목]"',
+                params: [
+                    { name: 'bar', desc: '막대 차트' },
+                    { name: 'line', desc: '선 차트' },
+                    { name: 'pie', desc: '파이 차트' },
+                    { name: '제목', desc: '차트 제목' }
+                ],
+                examples: ['chart bar "월별 매출"', 'chart line "일별 방문자"', 'chart pie "카테고리 분포"']
+            },
+            {
+                name: 'progress',
+                icon: '📶',
+                description: '진행률 표시 바입니다.',
+                syntax: 'progress [값] "[라벨]"',
+                params: [
+                    { name: '값', desc: '0-100 사이의 퍼센트 값' },
+                    { name: '라벨', desc: '진행률 설명 (선택)', optional: true }
+                ],
+                examples: ['progress 75', 'progress 45 "다운로드 진행률"']
+            },
+            {
+                name: 'rating',
+                icon: '⭐',
+                description: '별점 표시입니다.',
+                syntax: 'rating [값]',
+                params: [
+                    { name: '값', desc: '0-5 사이의 숫자 (소수점 가능)' }
+                ],
+                examples: ['rating 4.5', 'rating 3', 'rating 5']
+            },
+            {
+                name: 'badge',
+                icon: '🏷️',
+                description: '뱃지/라벨입니다. 색상을 지정할 수 있습니다.',
+                syntax: 'badge "[텍스트]" [색상]',
+                params: [
+                    { name: '텍스트', desc: '뱃지에 표시될 텍스트' },
+                    { name: '색상', desc: 'red, green, blue, yellow, gray (선택)', optional: true }
+                ],
+                examples: ['badge "New"', 'badge "Sale" red', 'badge "인기" green']
+            },
+            {
+                name: 'tag',
+                icon: '🔖',
+                description: '태그입니다. 뱃지보다 각진 모양입니다.',
+                syntax: 'tag "[텍스트]" [색상]',
+                params: [
+                    { name: '텍스트', desc: '태그에 표시될 텍스트' },
+                    { name: '색상', desc: 'red, green, blue, yellow, gray, purple (선택)', optional: true }
+                ],
+                examples: ['tag "기술"', 'tag "긴급" red', 'tag "완료" green']
+            },
+            {
+                name: 'product',
+                icon: '🛍️',
+                description: '상품 카드입니다. 이미지, 이름, 가격, 별점을 포함합니다.',
+                syntax: 'product "[이름]" "[가격]" star [별점]',
+                params: [
+                    { name: '이름', desc: '상품명' },
+                    { name: '가격', desc: '가격 표시' },
+                    { name: 'star', desc: '별점 표시 키워드 (선택)', optional: true },
+                    { name: '별점', desc: '0-5 사이의 숫자', optional: true }
+                ],
+                examples: ['product "상품명" "₩29,000"', 'product "상품명" "₩29,000" star 4.5']
+            }
+        ],
+        navigation: [
+            {
+                name: 'tabs',
+                icon: '📑',
+                description: '탭 내비게이션입니다. active:인덱스로 활성 탭을 지정합니다.',
+                syntax: 'tabs "[탭1]" "[탭2]" ... active:[인덱스]',
+                params: [
+                    { name: '탭', desc: '탭 이름들' },
+                    { name: 'active:', desc: '활성 탭 인덱스 (0부터 시작, 선택)', optional: true }
+                ],
+                examples: ['tabs "전체" "인기" "최신"', 'tabs "홈" "검색" "설정" active:1']
+            },
+            {
+                name: 'breadcrumb',
+                icon: '🔗',
+                description: '브레드크럼 내비게이션입니다. 현재 위치 경로를 표시합니다.',
+                syntax: 'breadcrumb "[항목1]" "[항목2]" ...',
+                params: [
+                    { name: '항목', desc: '경로 항목들 (마지막 항목이 현재 위치)' }
+                ],
+                examples: ['breadcrumb "홈" "카테고리" "상품"', 'breadcrumb "설정" "계정"']
+            },
+            {
+                name: 'stepper',
+                icon: '👣',
+                description: '단계 표시기입니다. 현재 진행 단계를 보여줍니다.',
+                syntax: 'stepper [현재단계] "[단계1]" "[단계2]" ...',
+                params: [
+                    { name: '현재단계', desc: '현재 활성 단계 번호 (1부터 시작)' },
+                    { name: '단계', desc: '각 단계 이름들' }
+                ],
+                examples: ['stepper 2 "정보입력" "결제" "완료"', 'stepper 1 "장바구니" "배송" "결제"']
+            },
+            {
+                name: 'pagination',
+                icon: '📃',
+                description: '페이지네이션입니다. 페이지 번호들을 표시합니다.',
+                syntax: 'pagination [페이지번호들]',
+                params: [
+                    { name: '페이지번호', desc: '숫자 또는 ... (생략 표시)' }
+                ],
+                examples: ['pagination 1 2 3 4 5', 'pagination 1 2 3 ... 10']
+            },
+            {
+                name: 'menu',
+                icon: '📋',
+                description: '사이드바 메뉴 항목입니다. active로 선택 상태를 표시합니다.',
+                syntax: 'menu "[라벨]" [active]',
+                params: [
+                    { name: '라벨', desc: '메뉴 항목 텍스트' },
+                    { name: 'active', desc: '선택된 상태로 표시 (선택)', optional: true }
+                ],
+                examples: ['menu "대시보드" active', 'menu "설정"']
+            },
+            {
+                name: 'nav',
+                icon: '🧭',
+                description: '헤더용 내비게이션 메뉴입니다. 여러 항목을 나열합니다.',
+                syntax: 'nav "[항목1]" "[항목2]" ...',
+                params: [
+                    { name: '항목', desc: '내비게이션 메뉴 항목들' }
+                ],
+                examples: ['nav "홈" "서비스" "문의"', 'nav "대시보드" "설정"']
+            },
+            {
+                name: 'link',
+                icon: '🔗',
+                description: '링크 텍스트입니다. 파란색으로 표시됩니다.',
+                syntax: 'link "[텍스트]"',
+                params: [
+                    { name: '텍스트', desc: '링크 텍스트' }
+                ],
+                examples: ['link "자세히 보기"', 'link "비밀번호 찾기"']
+            }
+        ],
+        container: [
+            {
+                name: 'modal',
+                icon: '🪟',
+                description: '모달 다이얼로그 플레이스홀더입니다.',
+                syntax: 'modal "[제목]"',
+                params: [
+                    { name: '제목', desc: '모달 헤더 제목' }
+                ],
+                examples: ['modal "확인"', 'modal "새 항목 추가"']
+            },
+            {
+                name: 'form',
+                icon: '📋',
+                description: '폼 컨테이너 플레이스홀더입니다. 제목과 필드 영역을 표시합니다.',
+                syntax: 'form "[제목]"',
+                params: [
+                    { name: '제목', desc: '폼 제목' }
+                ],
+                examples: ['form "회원가입"', 'form "문의하기"']
+            },
+            {
+                name: 'accordion',
+                icon: '🪗',
+                description: '아코디언 접기/펼치기 컴포넌트입니다.',
+                syntax: 'accordion "[제목1]" "[제목2]" ...',
+                params: [
+                    { name: '제목', desc: '각 아코디언 항목 제목들' }
+                ],
+                examples: ['accordion "FAQ 1" "FAQ 2" "FAQ 3"', 'accordion "배송 안내" "반품 안내"']
+            },
+            {
+                name: 'carousel',
+                icon: '🎠',
+                description: '캐러셀/슬라이더 컴포넌트입니다.',
+                syntax: 'carousel "[슬라이드1]" "[슬라이드2]" ...',
+                params: [
+                    { name: '슬라이드', desc: '각 슬라이드 내용/이름' }
+                ],
+                examples: ['carousel "배너1" "배너2" "배너3"', 'carousel "이미지1" "이미지2"']
+            },
+            {
+                name: 'timeline',
+                icon: '📅',
+                description: '타임라인 컴포넌트입니다. 순차적인 이벤트를 표시합니다.',
+                syntax: 'timeline "[이벤트1]" "[이벤트2]" ...',
+                params: [
+                    { name: '이벤트', desc: '타임라인 항목들' }
+                ],
+                examples: ['timeline "주문접수" "배송준비" "배송중" "배송완료"']
+            },
+            {
+                name: 'post',
+                icon: '📰',
+                description: '소셜 미디어 포스트 컨테이너입니다. avatar, image, icons, text를 포함합니다.',
+                syntax: 'post\\n    avatar "[이름]"\\n    image placeholder\\n    icons [아이콘들]\\n    text "[내용]"\\nend',
+                params: [
+                    { name: 'avatar', desc: '작성자 프로필' },
+                    { name: 'image', desc: '포스트 이미지' },
+                    { name: 'icons', desc: '좋아요, 댓글 등 아이콘들' },
+                    { name: 'text', desc: '포스트 내용' }
+                ],
+                examples: ['post\\n    avatar "user1"\\n    image placeholder\\n    icons heart comment share\\n    text "내용..."\\nend']
+            }
+        ],
+        media: [
+            {
+                name: 'image',
+                icon: '🖼️',
+                description: '이미지 플레이스홀더입니다.',
+                syntax: 'image placeholder',
+                params: [
+                    { name: 'placeholder', desc: '플레이스홀더 표시 키워드' }
+                ],
+                examples: ['image placeholder']
+            },
+            {
+                name: 'video',
+                icon: '🎬',
+                description: '비디오 플레이스홀더입니다. 재생 버튼이 표시됩니다.',
+                syntax: 'video placeholder',
+                params: [
+                    { name: 'placeholder', desc: '플레이스홀더 표시 키워드' }
+                ],
+                examples: ['video placeholder']
+            },
+            {
+                name: 'map',
+                icon: '🗺️',
+                description: '지도 플레이스홀더입니다.',
+                syntax: 'map placeholder',
+                params: [
+                    { name: 'placeholder', desc: '플레이스홀더 표시 키워드' }
+                ],
+                examples: ['map placeholder']
+            },
+            {
+                name: 'avatar',
+                icon: '👤',
+                description: '사용자 아바타입니다. add 옵션으로 추가 버튼 스타일을 적용합니다.',
+                syntax: 'avatar "[이름]" [add]',
+                params: [
+                    { name: '이름', desc: '사용자 이름 (아래에 표시)' },
+                    { name: 'add', desc: '+ 버튼 스타일 적용 (선택)', optional: true }
+                ],
+                examples: ['avatar "홍길동"', 'avatar "내 스토리" add']
+            },
+            {
+                name: 'icon',
+                icon: '🔣',
+                description: '단일 아이콘입니다. active로 활성 상태를 표시합니다.',
+                syntax: 'icon [이름] [active]',
+                params: [
+                    { name: '이름', desc: 'home, search, heart, user, cart, settings, bell, message, add, menu, close, check' },
+                    { name: 'active', desc: '활성 상태 (파란색) (선택)', optional: true }
+                ],
+                examples: ['icon home', 'icon search active', 'icon cart']
+            },
+            {
+                name: 'icons',
+                icon: '🔣',
+                description: '여러 아이콘을 가로로 나열합니다.',
+                syntax: 'icons [이름1] [이름2] ...',
+                params: [
+                    { name: '이름', desc: '아이콘 이름들' }
+                ],
+                examples: ['icons heart comment share bookmark', 'icons home search user']
+            },
+            {
+                name: 'logo',
+                icon: '🏷️',
+                description: '로고 텍스트입니다. 헤더에 주로 사용됩니다.',
+                syntax: 'logo "[텍스트]"',
+                params: [
+                    { name: '텍스트', desc: '로고 텍스트' }
+                ],
+                examples: ['logo "MyApp"', 'logo "Company"']
+            },
+            {
+                name: 'skeleton',
+                icon: '💀',
+                description: '로딩 스켈레톤 UI입니다.',
+                syntax: 'skeleton text|card|image|avatar [개수]',
+                params: [
+                    { name: 'text', desc: '텍스트 스켈레톤' },
+                    { name: 'card', desc: '카드 스켈레톤' },
+                    { name: 'image', desc: '이미지 스켈레톤' },
+                    { name: 'avatar', desc: '아바타 스켈레톤' },
+                    { name: '개수', desc: '반복 횟수 (선택)', optional: true }
+                ],
+                examples: ['skeleton text 3', 'skeleton card', 'skeleton avatar 2']
+            },
+            {
+                name: 'calendar',
+                icon: '📆',
+                description: '캘린더 컴포넌트입니다.',
+                syntax: 'calendar',
+                params: [],
+                examples: ['calendar']
+            }
+        ],
+        feedback: [
+            {
+                name: 'alert',
+                icon: '⚠️',
+                description: '알림/경고 메시지입니다. 타입에 따라 색상이 달라집니다.',
+                syntax: 'alert info|success|warning|error "[메시지]"',
+                params: [
+                    { name: 'info', desc: '정보 알림 (파란색)' },
+                    { name: 'success', desc: '성공 알림 (초록색)' },
+                    { name: 'warning', desc: '경고 알림 (주황색)' },
+                    { name: 'error', desc: '오류 알림 (빨간색)' },
+                    { name: '메시지', desc: '알림 내용' }
+                ],
+                examples: ['alert info "정보입니다"', 'alert success "저장되었습니다"', 'alert error "오류 발생"']
+            },
+            {
+                name: 'tooltip',
+                icon: '💬',
+                description: '툴팁입니다. 작은 말풍선 형태로 표시됩니다.',
+                syntax: 'tooltip "[텍스트]"',
+                params: [
+                    { name: '텍스트', desc: '툴팁 내용' }
+                ],
+                examples: ['tooltip "도움말 텍스트"', 'tooltip "클릭하세요"']
+            },
+            {
+                name: 'quote',
+                icon: '💭',
+                description: '인용문입니다. 왼쪽에 파란 바가 표시됩니다.',
+                syntax: 'quote "[인용문]" "[저자]"',
+                params: [
+                    { name: '인용문', desc: '인용할 텍스트' },
+                    { name: '저자', desc: '인용 출처/저자 (선택)', optional: true }
+                ],
+                examples: ['quote "좋은 디자인은 눈에 띄지 않는다"', 'quote "인용문" "저자"']
+            },
+            {
+                name: 'divider',
+                icon: '➖',
+                description: '구분선입니다. 텍스트를 포함할 수 있습니다.',
+                syntax: 'divider ["텍스트"]',
+                params: [
+                    { name: '텍스트', desc: '구분선 중앙에 표시할 텍스트 (선택)', optional: true }
+                ],
+                examples: ['divider', 'divider "또는"', 'divider "OR"']
+            }
+        ],
+        other: [
+            {
+                name: 'list',
+                icon: '📝',
+                description: '리스트입니다. bullet(점), number(번호), check(체크) 스타일을 지원합니다.',
+                syntax: 'list bullet|number|check "[항목1]" "[항목2]" ...',
+                params: [
+                    { name: 'bullet', desc: '글머리 기호 (•)' },
+                    { name: 'number', desc: '번호 매기기 (1. 2. 3.)' },
+                    { name: 'check', desc: '체크 표시 (☑)' },
+                    { name: '항목', desc: '리스트 항목들' }
+                ],
+                examples: ['list bullet "항목 1" "항목 2"', 'list number "첫째" "둘째"', 'list check "완료" "진행중"']
+            },
+            {
+                name: 'chips',
+                icon: '🏷️',
+                description: '칩/태그 그룹입니다. 여러 칩을 가로로 나열합니다.',
+                syntax: 'chips "[칩1]" "[칩2]" ...',
+                params: [
+                    { name: '칩', desc: '칩 텍스트들' }
+                ],
+                examples: ['chips "React" "Vue" "Angular"', 'chips "태그1" "태그2"']
+            },
+            {
+                name: 'social',
+                icon: '🌐',
+                description: '소셜 미디어 아이콘 그룹입니다.',
+                syntax: 'social [네트워크1] [네트워크2] ...',
+                params: [
+                    { name: '네트워크', desc: 'facebook, twitter, instagram, linkedin, youtube, github' }
+                ],
+                examples: ['social facebook twitter instagram', 'social github linkedin']
+            },
+            {
+                name: 'search',
+                icon: '🔍',
+                description: '검색 입력 필드입니다. 돋보기 아이콘이 포함됩니다.',
+                syntax: 'search "[placeholder]"',
+                params: [
+                    { name: 'placeholder', desc: '검색창 힌트 텍스트' }
+                ],
+                examples: ['search "검색어를 입력하세요"', 'search "상품 검색..."']
+            },
+            {
+                name: 'spacer',
+                icon: '↕️',
+                description: '빈 공간을 추가합니다.',
+                syntax: 'spacer [크기]',
+                params: [
+                    { name: '크기', desc: '픽셀 단위 높이 (기본값: 20)', optional: true }
+                ],
+                examples: ['spacer', 'spacer 40', 'spacer 10']
+            }
+        ]
+    }
+};
+
 // 앱 상태
 let currentDiagramType = 'flowchart';
 let zoomLevel = 100;
@@ -938,6 +1639,9 @@ function initializeElements() {
     elements.resizeHandle = document.getElementById('resizeHandle');
     elements.editorPanel = document.querySelector('.editor-panel');
     elements.mainContent = document.querySelector('.main-content');
+    elements.componentReferenceOverlay = document.getElementById('componentReferenceOverlay');
+    elements.referenceNav = document.getElementById('referenceNav');
+    elements.referenceContent = document.getElementById('referenceContent');
 
     // 렌더러 초기화
     diagramRenderer = new DiagramRenderer('diagramCanvas');
@@ -1006,11 +1710,21 @@ function initializeEventListeners() {
         if (e.key === 'Escape') {
             elements.examplesSidebar.classList.remove('open');
             elements.syntaxHelp.classList.remove('open');
+            elements.componentReferenceOverlay.classList.remove('active');
         }
     });
 
     // 리사이즈 핸들
     initializeResize();
+
+    // 컴포넌트 레퍼런스
+    document.getElementById('toggleReference').addEventListener('click', openComponentReference);
+    document.getElementById('closeReference').addEventListener('click', closeComponentReference);
+    elements.componentReferenceOverlay.addEventListener('click', (e) => {
+        if (e.target === elements.componentReferenceOverlay) {
+            closeComponentReference();
+        }
+    });
 }
 
 // 리사이즈 기능
@@ -1084,6 +1798,71 @@ function initializeResize() {
             elements.resizeHandle.classList.remove('dragging');
         }
     });
+}
+
+// 컴포넌트 레퍼런스 기능
+let currentReferenceCategory = 'structure';
+
+function openComponentReference() {
+    elements.componentReferenceOverlay.classList.add('active');
+    renderReferenceNav();
+    renderReferenceContent(currentReferenceCategory);
+}
+
+function closeComponentReference() {
+    elements.componentReferenceOverlay.classList.remove('active');
+}
+
+function renderReferenceNav() {
+    elements.referenceNav.innerHTML = COMPONENT_REFERENCE.categories.map(cat => `
+        <button class="reference-nav-btn ${cat.id === currentReferenceCategory ? 'active' : ''}"
+                data-category="${cat.id}">
+            ${cat.name}
+        </button>
+    `).join('');
+
+    elements.referenceNav.querySelectorAll('.reference-nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentReferenceCategory = btn.dataset.category;
+            renderReferenceNav();
+            renderReferenceContent(currentReferenceCategory);
+        });
+    });
+}
+
+function renderReferenceContent(categoryId) {
+    const components = COMPONENT_REFERENCE.components[categoryId] || [];
+
+    elements.referenceContent.innerHTML = components.map(comp => `
+        <div class="component-card">
+            <h3>
+                <span class="component-icon">${comp.icon}</span>
+                ${comp.name}
+            </h3>
+            <p class="description">${comp.description}</p>
+            <div class="syntax-box">
+                <code>${comp.syntax.replace(/\\n/g, '\n')}</code>
+            </div>
+            ${comp.params.length > 0 ? `
+                <div class="params">
+                    <div class="params-title">파라미터</div>
+                    ${comp.params.map(p => `
+                        <div class="param-item">
+                            <span class="param-name">${p.name}</span>
+                            <span class="param-desc">${p.desc}</span>
+                            ${p.optional ? '<span class="param-optional">(선택)</span>' : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+            <div class="examples">
+                <div class="examples-title">사용 예시</div>
+                ${comp.examples.map(ex => `
+                    <div class="example-code">${ex.replace(/\\n/g, '\n')}</div>
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
 }
 
 function switchDiagramType(type) {
