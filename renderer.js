@@ -706,26 +706,48 @@ class DiagramRenderer {
             allStates.add(t.to);
         });
 
-        // 레벨 계산
-        const levels = new Map();
-        const visited = new Set();
-
-        // 시작점에서 BFS
-        if (allStates.has('__start__')) {
-            levels.set('__start__', 0);
-            visited.add('__start__');
-        }
-
-        const queue = Array.from(allStates).filter(s => !visited.has(s)).map(s => ({ id: s, level: allStates.has('__start__') ? 1 : 0 }));
-
-        let maxLevel = 0;
+        // 인접 리스트 생성
+        const adjacency = new Map();
+        allStates.forEach(s => adjacency.set(s, []));
         data.transitions.forEach(t => {
-            const fromLevel = levels.get(t.from) || 0;
-            if (!levels.has(t.to) || levels.get(t.to) < fromLevel + 1) {
-                levels.set(t.to, fromLevel + 1);
-                maxLevel = Math.max(maxLevel, fromLevel + 1);
+            if (adjacency.has(t.from)) {
+                adjacency.get(t.from).push(t.to);
             }
         });
+
+        // BFS로 레벨 계산
+        const levels = new Map();
+        const queue = [];
+
+        // 시작점 찾기
+        if (allStates.has('__start__')) {
+            queue.push('__start__');
+            levels.set('__start__', 0);
+        } else {
+            // 시작점이 없으면 들어오는 간선이 없는 노드를 시작점으로
+            const hasIncoming = new Set();
+            data.transitions.forEach(t => hasIncoming.add(t.to));
+            allStates.forEach(s => {
+                if (!hasIncoming.has(s) && s !== '__end__') {
+                    queue.push(s);
+                    levels.set(s, 0);
+                }
+            });
+        }
+
+        // BFS 실행
+        while (queue.length > 0) {
+            const current = queue.shift();
+            const currentLevel = levels.get(current);
+            const neighbors = adjacency.get(current) || [];
+
+            neighbors.forEach(next => {
+                if (!levels.has(next)) {
+                    levels.set(next, currentLevel + 1);
+                    queue.push(next);
+                }
+            });
+        }
 
         // 방문하지 않은 상태 처리
         allStates.forEach(s => {
@@ -741,10 +763,21 @@ class DiagramRenderer {
             levelGroups.get(level).push(stateId);
         });
 
-        // 위치 계산
+        // 전체 너비 계산을 위해 최대 레벨의 상태 수 확인
+        let maxStatesInLevel = 0;
+        levelGroups.forEach(states => {
+            maxStatesInLevel = Math.max(maxStatesInLevel, states.length);
+        });
+
+        // 위치 계산 - 가운데 정렬
+        const totalWidth = maxStatesInLevel * (cfg.stateWidth + cfg.stateSpacing) - cfg.stateSpacing;
+
         levelGroups.forEach((states, level) => {
+            const levelWidth = states.length * (cfg.stateWidth + cfg.stateSpacing) - cfg.stateSpacing;
+            const startX = cfg.padding + (totalWidth - levelWidth) / 2;
+
             states.forEach((stateId, idx) => {
-                const x = cfg.padding + idx * (cfg.stateWidth + cfg.stateSpacing);
+                const x = startX + idx * (cfg.stateWidth + cfg.stateSpacing);
                 const y = cfg.padding + level * (cfg.stateHeight + cfg.stateSpacing);
                 positions.set(stateId, { x, y });
             });
@@ -794,25 +827,54 @@ class DiagramRenderer {
     drawStateTransition(from, to, trans, cfg) {
         const group = this.createGroup();
 
-        const fromCx = from.x + (trans.from === '__start__' || trans.from === '__end__' ? 15 : cfg.stateWidth / 2);
-        const fromCy = from.y + (trans.from === '__start__' || trans.from === '__end__' ? 25 : cfg.stateHeight / 2);
-        const toCx = to.x + (trans.to === '__start__' || trans.to === '__end__' ? 15 : cfg.stateWidth / 2);
-        const toCy = to.y + (trans.to === '__start__' || trans.to === '__end__' ? 25 : cfg.stateHeight / 2);
+        const isFromSpecial = trans.from === '__start__' || trans.from === '__end__';
+        const isToSpecial = trans.to === '__start__' || trans.to === '__end__';
 
-        // 시작/끝 점 조정
-        let startX = fromCx, startY, endX = toCx, endY;
+        const fromW = isFromSpecial ? 30 : cfg.stateWidth;
+        const fromH = isFromSpecial ? 50 : cfg.stateHeight;
+        const toW = isToSpecial ? 30 : cfg.stateWidth;
+        const toH = isToSpecial ? 50 : cfg.stateHeight;
 
-        if (fromCy < toCy) {
-            startY = from.y + (trans.from === '__start__' || trans.from === '__end__' ? 37 : cfg.stateHeight);
-            endY = to.y;
-        } else {
-            startY = from.y;
-            endY = to.y + (trans.to === '__start__' || trans.to === '__end__' ? 50 : cfg.stateHeight);
+        const fromCx = from.x + fromW / 2;
+        const fromCy = from.y + fromH / 2;
+        const toCx = to.x + toW / 2;
+        const toCy = to.y + toH / 2;
+
+        let startX, startY, endX, endY;
+        let pathD;
+
+        // 수직 방향 (아래로)
+        if (Math.abs(fromCy - toCy) > Math.abs(fromCx - toCx)) {
+            if (fromCy < toCy) {
+                startX = fromCx;
+                startY = from.y + fromH;
+                endX = toCx;
+                endY = to.y;
+            } else {
+                startX = fromCx;
+                startY = from.y;
+                endX = toCx;
+                endY = to.y + toH;
+            }
+            const midY = (startY + endY) / 2;
+            pathD = `M ${startX} ${startY} C ${startX} ${midY}, ${endX} ${midY}, ${endX} ${endY}`;
         }
-
-        const midY = (startY + endY) / 2;
-
-        const pathD = `M ${startX} ${startY} C ${startX} ${midY}, ${endX} ${midY}, ${endX} ${endY}`;
+        // 수평 방향 (같은 레벨)
+        else {
+            if (fromCx < toCx) {
+                startX = from.x + fromW;
+                startY = fromCy;
+                endX = to.x;
+                endY = toCy;
+            } else {
+                startX = from.x;
+                startY = fromCy;
+                endX = to.x + toW;
+                endY = toCy;
+            }
+            const midX = (startX + endX) / 2;
+            pathD = `M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${endY}, ${endX} ${endY}`;
+        }
 
         const path = this.createPath(pathD, {
             markerEnd: 'url(#arrowhead)'
@@ -822,10 +884,13 @@ class DiagramRenderer {
         // 라벨
         if (trans.label) {
             const labelX = (startX + endX) / 2;
-            const labelY = midY;
+            const labelY = (startY + endY) / 2;
 
-            const bg = this.createRect(labelX - 25, labelY - 10, 50, 20, {
-                fill: '#fff', stroke: 'none'
+            // 라벨 배경 크기 계산
+            const labelWidth = Math.max(trans.label.length * 8 + 10, 50);
+
+            const bg = this.createRect(labelX - labelWidth / 2, labelY - 10, labelWidth, 20, {
+                fill: '#fff', stroke: '#ddd', rx: 3
             });
             group.appendChild(bg);
 
