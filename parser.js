@@ -967,7 +967,19 @@ class DiagramParser {
             return { type: 'product', name: match[1], price: match[2], rating: match[3] ? parseFloat(match[3]) : null };
         }
 
-        // image placeholder
+        // image "title|description" 또는 image "title"
+        match = line.match(/^image\s+"([^"]+)"$/i);
+        if (match) {
+            const parts = match[1].split('|');
+            return {
+                type: 'image',
+                title: parts[0].trim(),
+                description: parts[1] ? parts[1].trim() : null,
+                placeholder: false
+            };
+        }
+
+        // image placeholder (레거시 지원)
         match = line.match(/^image\s+(placeholder)$/i);
         if (match) {
             return { type: 'image', placeholder: true };

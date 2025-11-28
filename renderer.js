@@ -2393,16 +2393,50 @@ class DiagramRenderer {
                 return { height: 65 };
 
             case 'image':
-                const imgH = 200;
+                const imgH = item.description ? 220 : 200;
                 const placeholderBg = this.createRect(ctx.x, ctx.y, ctx.width, imgH, {
-                    fill: '#F0F0F0', stroke: '#E0E0E0', rx: 0
+                    fill: '#F5F5F5', stroke: '#E0E0E0', rx: 4
                 });
                 svg.appendChild(placeholderBg);
-                // 이미지 아이콘
-                const imgIcon = this.createPath(`M ${ctx.x + ctx.width / 2 - 20} ${ctx.y + imgH / 2 - 10} l 10 15 l 10 -8 l 15 20 h -50 z`, {
-                    fill: '#CCC', stroke: 'none'
-                });
+
+                // 이미지 아이콘 (산 모양)
+                const iconCenterX = ctx.x + ctx.width / 2;
+                const iconCenterY = item.title ? ctx.y + imgH / 2 - 25 : ctx.y + imgH / 2 - 10;
+                const imgIcon = this.createPath(
+                    `M ${iconCenterX - 25} ${iconCenterY + 15} ` +
+                    `l 12 -20 l 8 12 l 15 -25 l 15 33 h -50 z`,
+                    { fill: '#CCC', stroke: 'none' }
+                );
                 svg.appendChild(imgIcon);
+
+                // 태양 아이콘
+                const sunCircle = this.createCircle(iconCenterX + 15, iconCenterY - 8, 6, {
+                    fill: '#DDD', stroke: 'none'
+                });
+                svg.appendChild(sunCircle);
+
+                // 타이틀 표시
+                if (item.title) {
+                    const titleText = this.createText(iconCenterX, iconCenterY + 40, item.title, {
+                        fontSize: '14', fontWeight: 'bold', fill: '#666', anchor: 'middle'
+                    });
+                    svg.appendChild(titleText);
+
+                    // 디스크립션 표시
+                    if (item.description) {
+                        // 긴 텍스트 줄바꿈 처리
+                        const maxChars = Math.floor(ctx.width / 8);
+                        let desc = item.description;
+                        if (desc.length > maxChars) {
+                            desc = desc.substring(0, maxChars - 3) + '...';
+                        }
+                        const descText = this.createText(iconCenterX, iconCenterY + 60, desc, {
+                            fontSize: '11', fill: '#999', anchor: 'middle'
+                        });
+                        svg.appendChild(descText);
+                    }
+                }
+
                 return { height: imgH };
 
             case 'icons':

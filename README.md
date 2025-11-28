@@ -801,9 +801,17 @@ calendar "2024-01" x,y,width,height
 
 #### image - 이미지
 ```
-image "설명" x,y,width,height
+image "타이틀"
+image "타이틀|상세 설명"
 ```
-이미지 플레이스홀더 (산 아이콘)
+이미지 플레이스홀더 (산+태양 아이콘, 타이틀/설명 표시)
+
+**예시:**
+```
+image "Hero Banner"
+image "상품 이미지|메인 상품 사진, 정면 앵글"
+image "프로필|사용자 프로필 대표 이미지"
+```
 
 #### video - 비디오
 ```

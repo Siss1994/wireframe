@@ -1411,12 +1411,17 @@ const COMPONENT_REFERENCE = {
             {
                 name: 'image',
                 icon: '🖼️',
-                description: '이미지 플레이스홀더입니다.',
-                syntax: 'image placeholder',
+                description: '이미지 플레이스홀더입니다. 타이틀과 설명을 추가할 수 있습니다.',
+                syntax: 'image "타이틀|설명"',
                 params: [
-                    { name: 'placeholder', desc: '플레이스홀더 표시 키워드' }
+                    { name: '타이틀', desc: '이미지 제목/이름' },
+                    { name: '설명', desc: '이미지 상세 설명 (선택, | 로 구분)', optional: true }
                 ],
-                examples: ['image placeholder']
+                examples: [
+                    'image "상품 이미지"',
+                    'image "Hero Banner|메인 페이지 상단 배너 이미지"',
+                    'image "프로필 사진|사용자 프로필 대표 이미지"'
+                ]
             },
             {
                 name: 'video',
