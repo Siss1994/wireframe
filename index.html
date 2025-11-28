@@ -3,217 +3,1388 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diagram Editor - Flowchart, Sequence, State, Mindmap</title>
-    <link rel="stylesheet" href="style.css">
+    <title>DiagramFlow - 코드로 만드는 와이어프레임 & 다이어그램</title>
+    <meta name="description" content="텍스트 기반 다이어그램 에디터. AI와 함께 와이어프레임, 플로우차트, ER다이어그램을 빠르게 만들고 개발하세요.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366F1;
+            --primary-dark: #4F46E5;
+            --secondary: #10B981;
+            --accent: #F59E0B;
+            --dark: #1E1E2E;
+            --gray-900: #111827;
+            --gray-800: #1F2937;
+            --gray-700: #374151;
+            --gray-600: #4B5563;
+            --gray-400: #9CA3AF;
+            --gray-200: #E5E7EB;
+            --gray-100: #F3F4F6;
+            --white: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.7;
+            color: var(--gray-900);
+            background: var(--white);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 72px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--gray-900);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--gray-600);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+            font-size: 16px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--gray-100);
+            color: var(--gray-900);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-200);
+        }
+
+        .btn-large {
+            padding: 16px 32px;
+            font-size: 18px;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 160px 0 100px;
+            background: linear-gradient(180deg, var(--gray-100) 0%, var(--white) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 {
+            font-size: 56px;
+            font-weight: 900;
+            line-height: 1.2;
+            margin-bottom: 24px;
+            color: var(--gray-900);
+        }
+
+        .hero h1 .highlight {
+            background: linear-gradient(135deg, var(--primary) 0%, #8B5CF6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-description {
+            font-size: 20px;
+            color: var(--gray-600);
+            margin-bottom: 32px;
+            max-width: 500px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 48px;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 48px;
+        }
+
+        .stat {
+            text-align: left;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--gray-900);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+
+        .hero-visual {
+            position: relative;
+        }
+
+        .code-preview {
+            background: var(--dark);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.15);
+            transform: perspective(1000px) rotateY(-5deg) rotateX(2deg);
+        }
+
+        .code-header {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .code-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .code-dot.red { background: #FF5F56; }
+        .code-dot.yellow { background: #FFBD2E; }
+        .code-dot.green { background: #27C93F; }
+
+        .code-content {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            line-height: 1.8;
+            color: #E0E0E0;
+        }
+
+        .code-keyword { color: #C792EA; }
+        .code-string { color: #C3E88D; }
+        .code-comment { color: #546E7A; }
+
+        /* Problem Section */
+        .problem {
+            padding: 120px 0;
+            background: var(--gray-900);
+            color: var(--white);
+        }
+
+        .section-label {
+            display: inline-block;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 42px;
+            font-weight: 900;
+            margin-bottom: 24px;
+            line-height: 1.3;
+        }
+
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            margin-top: 60px;
+        }
+
+        .problem-card {
+            background: var(--gray-800);
+            border-radius: 16px;
+            padding: 32px;
+            border: 1px solid var(--gray-700);
+        }
+
+        .problem-icon {
+            font-size: 40px;
+            margin-bottom: 20px;
+        }
+
+        .problem-card h3 {
+            font-size: 20px;
+            margin-bottom: 12px;
+            color: var(--white);
+        }
+
+        .problem-card p {
+            color: var(--gray-400);
+            font-size: 15px;
+        }
+
+        /* Solution Section */
+        .solution {
+            padding: 120px 0;
+            background: var(--white);
+        }
+
+        .solution-intro {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 80px;
+        }
+
+        .solution-intro .section-title {
+            color: var(--gray-900);
+        }
+
+        .solution-intro p {
+            font-size: 18px;
+            color: var(--gray-600);
+        }
+
+        .solution-demo {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+            background: var(--gray-100);
+            border-radius: 24px;
+            padding: 60px;
+            margin-bottom: 80px;
+        }
+
+        .demo-code {
+            background: var(--dark);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .demo-result {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .demo-arrow {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 32px;
+            color: var(--primary);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 120px 0;
+            background: linear-gradient(180deg, var(--white) 0%, var(--gray-100) 100%);
+        }
+
+        .features-header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 28px;
+            border: 1px solid var(--gray-200);
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            border-color: var(--primary);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+
+        .feature-card h3 {
+            font-size: 17px;
+            margin-bottom: 8px;
+            color: var(--gray-900);
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: var(--gray-600);
+            line-height: 1.6;
+        }
+
+        /* Diagrams Section */
+        .diagrams {
+            padding: 120px 0;
+            background: var(--gray-900);
+            color: var(--white);
+        }
+
+        .diagrams-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .diagrams-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+        }
+
+        .diagram-card {
+            background: var(--gray-800);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            border: 1px solid var(--gray-700);
+            transition: all 0.3s;
+        }
+
+        .diagram-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-4px);
+        }
+
+        .diagram-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .diagram-card h3 {
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .diagram-card p {
+            font-size: 13px;
+            color: var(--gray-400);
+        }
+
+        /* Use Cases Section */
+        .use-cases {
+            padding: 120px 0;
+            background: var(--white);
+        }
+
+        .use-cases-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .use-case-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 60px;
+        }
+
+        .use-case-tab {
+            padding: 12px 24px;
+            border-radius: 100px;
+            border: 1px solid var(--gray-200);
+            background: var(--white);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .use-case-tab.active,
+        .use-case-tab:hover {
+            background: var(--primary);
+            color: var(--white);
+            border-color: var(--primary);
+        }
+
+        .use-case-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .use-case-text h3 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: var(--gray-900);
+        }
+
+        .use-case-text p {
+            font-size: 17px;
+            color: var(--gray-600);
+            margin-bottom: 24px;
+        }
+
+        .use-case-list {
+            list-style: none;
+        }
+
+        .use-case-list li {
+            padding: 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+            color: var(--gray-700);
+        }
+
+        .use-case-list li::before {
+            content: "✓";
+            color: var(--secondary);
+            font-weight: bold;
+        }
+
+        .use-case-image {
+            background: var(--gray-100);
+            border-radius: 16px;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .image-placeholder {
+            border: 2px dashed var(--gray-400);
+            border-radius: 12px;
+            padding: 40px;
+            width: 100%;
+            color: var(--gray-600);
+        }
+
+        .image-placeholder h4 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: var(--gray-700);
+        }
+
+        .image-placeholder p {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        /* Benefits Section */
+        .benefits {
+            padding: 120px 0;
+            background: linear-gradient(135deg, var(--primary) 0%, #8B5CF6 100%);
+            color: var(--white);
+        }
+
+        .benefits-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .benefits-header .section-label {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+        }
+
+        .benefit-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 32px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .benefit-number {
+            font-size: 48px;
+            font-weight: 900;
+            opacity: 0.3;
+            margin-bottom: 16px;
+        }
+
+        .benefit-card h3 {
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .benefit-card p {
+            font-size: 15px;
+            opacity: 0.9;
+            line-height: 1.7;
+        }
+
+        /* Comparison Section */
+        .comparison {
+            padding: 120px 0;
+            background: var(--gray-100);
+        }
+
+        .comparison-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .comparison-table {
+            background: var(--white);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .comparison-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .comparison-row:last-child {
+            border-bottom: none;
+        }
+
+        .comparison-cell {
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+        }
+
+        .comparison-header-row {
+            background: var(--gray-900);
+            color: var(--white);
+        }
+
+        .comparison-header-row .comparison-cell {
+            font-weight: 600;
+        }
+
+        .comparison-feature {
+            font-weight: 500;
+            color: var(--gray-900);
+        }
+
+        .check {
+            color: var(--secondary);
+            font-size: 20px;
+        }
+
+        .cross {
+            color: var(--gray-400);
+            font-size: 20px;
+        }
+
+        .highlight-col {
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        /* Testimonial Section */
+        .testimonial {
+            padding: 120px 0;
+            background: var(--white);
+        }
+
+        .testimonial-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .testimonial-quote {
+            font-size: 28px;
+            font-weight: 500;
+            color: var(--gray-900);
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .testimonial-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--gray-200);
+        }
+
+        .testimonial-info h4 {
+            font-size: 16px;
+            color: var(--gray-900);
+        }
+
+        .testimonial-info p {
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+
+        /* CTA Section */
+        .cta {
+            padding: 120px 0;
+            background: var(--gray-900);
+            color: var(--white);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            /* 배경 이미지 영역 */
+            /* TITLE: Abstract Tech Pattern */
+            /* PROMPT: Abstract geometric pattern with flowing lines and nodes, dark purple and blue gradient background, subtle glow effects, representing data flow and connectivity, modern tech aesthetic, 4K resolution */
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+        }
+
+        .cta-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta h2 {
+            font-size: 48px;
+            font-weight: 900;
+            margin-bottom: 24px;
+        }
+
+        .cta p {
+            font-size: 20px;
+            color: var(--gray-400);
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        /* Footer */
+        footer {
+            padding: 60px 0;
+            background: var(--dark);
+            color: var(--gray-400);
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 32px;
+        }
+
+        .footer-links a {
+            color: var(--gray-400);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--white);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero-content,
+            .solution-demo,
+            .use-case-content {
+                grid-template-columns: 1fr;
+            }
+
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .diagrams-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .benefits-grid,
+            .problem-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .section-title {
+                font-size: 32px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .features-grid,
+            .diagrams-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison-row {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-stats {
+                flex-direction: column;
+                gap: 24px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- 헤더 -->
-        <header class="app-header">
-            <div class="header-left">
-                <h1>Diagram Editor</h1>
-                <span class="subtitle">코드로 다이어그램을 그려보세요</span>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <a href="/" class="logo">Diagram<span>Flow</span></a>
+            <div class="nav-links">
+                <a href="#features">기능</a>
+                <a href="#diagrams">다이어그램</a>
+                <a href="#use-cases">활용 사례</a>
+                <a href="https://github.com" target="_blank">GitHub</a>
+                <a href="app/" class="btn btn-primary">무료로 시작하기</a>
             </div>
-            <div class="header-right">
-                <a href="README.md" target="_blank" class="doc-link">문서 보기</a>
-            </div>
-        </header>
+        </div>
+    </nav>
 
-        <!-- 다이어그램 타입 선택 -->
-        <nav class="diagram-tabs">
-            <button class="tab-btn active" data-type="flowchart">
-                <span class="tab-icon">&#9679;</span>
-                Flowchart
-            </button>
-            <button class="tab-btn" data-type="sequence">
-                <span class="tab-icon">&#8660;</span>
-                Sequence
-            </button>
-            <button class="tab-btn" data-type="state">
-                <span class="tab-icon">&#9673;</span>
-                State
-            </button>
-            <button class="tab-btn" data-type="mindmap">
-                <span class="tab-icon">&#10042;</span>
-                Mindmap
-            </button>
-            <button class="tab-btn" data-type="pie">
-                <span class="tab-icon">&#9684;</span>
-                Pie
-            </button>
-            <button class="tab-btn" data-type="class">
-                <span class="tab-icon">&#9633;</span>
-                Class
-            </button>
-            <button class="tab-btn" data-type="er">
-                <span class="tab-icon">&#9707;</span>
-                ER
-            </button>
-            <button class="tab-btn" data-type="gantt">
-                <span class="tab-icon">&#9776;</span>
-                Gantt
-            </button>
-            <button class="tab-btn" data-type="journey">
-                <span class="tab-icon">&#10140;</span>
-                Journey
-            </button>
-            <button class="tab-btn" data-type="wireframe">
-                <span class="tab-icon">&#9635;</span>
-                Wireframe
-            </button>
-        </nav>
-
-        <!-- 메인 콘텐츠 -->
-        <main class="main-content">
-            <!-- 에디터 패널 -->
-            <div class="editor-panel">
-                <div class="panel-header">
-                    <h2>코드 에디터</h2>
-                    <div class="panel-actions">
-                        <button id="formatBtn" class="btn btn-icon" title="코드 정리">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="21" y1="10" x2="3" y2="10"></line>
-                                <line x1="21" y1="6" x2="3" y2="6"></line>
-                                <line x1="21" y1="14" x2="3" y2="14"></line>
-                                <line x1="21" y1="18" x2="3" y2="18"></line>
-                            </svg>
-                        </button>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <span class="hero-badge">🚀 AI 시대의 새로운 설계 도구</span>
+                    <h1>
+                        코드로 만드는<br>
+                        <span class="highlight">와이어프레임</span>
+                    </h1>
+                    <p class="hero-description">
+                        텍스트만 입력하면 와이어프레임과 다이어그램이 즉시 생성됩니다.
+                        AI에게 설명하듯 작성하고, 실시간으로 확인하고, 바로 개발에 활용하세요.
+                        Figma 없이도 기획부터 개발까지 빠르게 진행할 수 있습니다.
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="app/" class="btn btn-primary btn-large">지금 사용해보기 →</a>
+                        <a href="#features" class="btn btn-secondary btn-large">자세히 알아보기</a>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="stat">
+                            <div class="stat-value">10+</div>
+                            <div class="stat-label">다이어그램 타입</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">50+</div>
+                            <div class="stat-label">UI 컴포넌트</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">100%</div>
+                            <div class="stat-label">무료 & 오픈소스</div>
+                        </div>
                     </div>
                 </div>
-                <div class="editor-wrapper">
-                    <div class="line-numbers" id="lineNumbers"></div>
-                    <textarea id="codeEditor" spellcheck="false" placeholder="여기에 다이어그램 코드를 입력하세요..."></textarea>
-                </div>
-                <div class="editor-footer">
-                    <span class="status" id="editorStatus">준비됨</span>
-                    <div class="editor-actions">
-                        <button id="renderBtn" class="btn btn-primary">
-                            <span>렌더링</span>
-                            <kbd>Ctrl+Enter</kbd>
-                        </button>
+                <div class="hero-visual">
+                    <div class="code-preview">
+                        <div class="code-header">
+                            <div class="code-dot red"></div>
+                            <div class="code-dot yellow"></div>
+                            <div class="code-dot green"></div>
+                        </div>
+                        <div class="code-content">
+                            <span class="code-keyword">wireframe</span> 로그인 화면<br><br>
+                            &nbsp;&nbsp;<span class="code-keyword">header</span> <span class="code-string">"My App"</span><br>
+                            &nbsp;&nbsp;<span class="code-keyword">input</span> <span class="code-string">"이메일 입력"</span><br>
+                            &nbsp;&nbsp;<span class="code-keyword">password</span> <span class="code-string">"비밀번호"</span><br>
+                            &nbsp;&nbsp;<span class="code-keyword">button</span> <span class="code-string">"로그인"</span><br>
+                            &nbsp;&nbsp;<span class="code-keyword">divider</span> <span class="code-string">"또는"</span><br>
+                            &nbsp;&nbsp;<span class="code-keyword">social</span><br><br>
+                            <span class="code-comment">// → 실시간 프리뷰로 확인</span>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </section>
 
-            <!-- 리사이즈 핸들 -->
-            <div class="resize-handle" id="resizeHandle"></div>
+    <!-- Problem Section -->
+    <section class="problem">
+        <div class="container">
+            <span class="section-label">Problem</span>
+            <h2 class="section-title">기존 설계 방식의 한계</h2>
+            <p style="color: var(--gray-400); font-size: 18px; max-width: 600px;">
+                디자인 도구는 강력하지만, 빠른 아이디어 검증과 AI 협업에는 최적화되어 있지 않습니다.
+                개발자와 기획자 사이의 소통 비용도 만만치 않죠.
+            </p>
+            <div class="problem-grid">
+                <div class="problem-card">
+                    <div class="problem-icon">🐌</div>
+                    <h3>느린 프로토타이핑</h3>
+                    <p>Figma나 Sketch로 와이어프레임을 그리려면 학습 시간과 작업 시간이 상당합니다. 간단한 아이디어 검증에 며칠이 걸리기도 합니다.</p>
+                </div>
+                <div class="problem-card">
+                    <div class="problem-icon">🤖</div>
+                    <h3>AI와의 협업 어려움</h3>
+                    <p>ChatGPT나 Claude에게 "로그인 화면 만들어줘"라고 해도 이미지 기반 도구로는 바로 적용하기 어렵습니다. 텍스트로 주고받아야 빠릅니다.</p>
+                </div>
+                <div class="problem-card">
+                    <div class="problem-icon">🔀</div>
+                    <h3>버전 관리 불가</h3>
+                    <p>디자인 파일은 Git으로 관리하기 어렵습니다. 누가 언제 무엇을 바꿨는지 추적하기 힘들고, 코드 리뷰처럼 변경사항을 검토할 수 없습니다.</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-            <!-- 미리보기 패널 -->
-            <div class="preview-panel">
-                <div class="panel-header">
-                    <h2>미리보기</h2>
-                    <div class="panel-actions">
-                        <button id="zoomOutBtn" class="btn btn-icon" title="축소">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                <line x1="8" y1="11" x2="14" y2="11"></line>
-                            </svg>
-                        </button>
-                        <span id="zoomLevel" class="zoom-level">100%</span>
-                        <button id="zoomInBtn" class="btn btn-icon" title="확대">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                <line x1="11" y1="8" x2="11" y2="14"></line>
-                                <line x1="8" y1="11" x2="14" y2="11"></line>
-                            </svg>
-                        </button>
-                        <button id="resetZoomBtn" class="btn btn-icon" title="원래 크기">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
-                                <path d="M1 4v6h6"></path>
-                            </svg>
-                        </button>
-                        <div class="divider"></div>
-                        <button id="exportSvgBtn" class="btn btn-secondary">SVG 저장</button>
-                        <button id="exportPngBtn" class="btn btn-secondary">PNG 저장</button>
+    <!-- Solution Section -->
+    <section class="solution" id="features">
+        <div class="container">
+            <div class="solution-intro">
+                <span class="section-label">Solution</span>
+                <h2 class="section-title">텍스트 기반으로 모든 것을 해결</h2>
+                <p>
+                    코드처럼 작성하고, 마크다운처럼 쉽게.
+                    DiagramFlow는 텍스트만으로 전문적인 다이어그램과 와이어프레임을 생성합니다.
+                    AI와 함께라면 더욱 빠르게.
+                </p>
+            </div>
+
+            <div class="solution-demo">
+                <div class="demo-code">
+                    <div class="code-content">
+                        <span class="code-keyword">flowchart</span> TD<br>
+                        &nbsp;&nbsp;A[<span class="code-string">시작</span>] --> B{<span class="code-string">로그인?</span>}<br>
+                        &nbsp;&nbsp;B -->|<span class="code-string">Yes</span>| C[<span class="code-string">대시보드</span>]<br>
+                        &nbsp;&nbsp;B -->|<span class="code-string">No</span>| D[<span class="code-string">로그인 페이지</span>]<br>
+                        &nbsp;&nbsp;D --> B
                     </div>
                 </div>
-                <div class="preview-wrapper" id="previewWrapper">
-                    <div id="diagramCanvas" class="diagram-canvas"></div>
-                </div>
-            </div>
-        </main>
-
-        <!-- 예제 모달 -->
-        <div class="examples-sidebar" id="examplesSidebar">
-            <div class="sidebar-header">
-                <h3>예제 템플릿</h3>
-                <button id="closeSidebar" class="btn btn-icon">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
-            </div>
-            <div class="examples-list" id="examplesList">
-                <!-- 동적으로 생성됨 -->
-            </div>
-        </div>
-
-        <!-- 예제 토글 버튼 -->
-        <button id="toggleExamples" class="toggle-examples-btn" title="예제 보기">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14,2 14,8 20,8"></polyline>
-                <line x1="16" y1="13" x2="8" y2="13"></line>
-                <line x1="16" y1="17" x2="8" y2="17"></line>
-            </svg>
-            <span>예제</span>
-        </button>
-
-        <!-- 문법 도움말 툴팁 -->
-        <div class="syntax-help" id="syntaxHelp">
-            <div class="help-header">
-                <span>문법 도움말</span>
-                <button id="closeSyntaxHelp" class="btn btn-icon btn-small">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
-            </div>
-            <div class="help-content" id="syntaxHelpContent">
-                <!-- 동적으로 생성됨 -->
-            </div>
-        </div>
-
-        <button id="toggleSyntaxHelp" class="toggle-syntax-btn" title="문법 도움말">?</button>
-
-        <!-- 컴포넌트 레퍼런스 모달 -->
-        <div class="component-reference-overlay" id="componentReferenceOverlay">
-            <div class="component-reference-modal">
-                <div class="reference-header">
-                    <h2>📚 Wireframe 컴포넌트 레퍼런스</h2>
-                    <button id="closeReference" class="btn btn-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                    </button>
-                </div>
-                <div class="reference-nav" id="referenceNav">
-                    <!-- 카테고리 탭 동적 생성 -->
-                </div>
-                <div class="reference-content" id="referenceContent">
-                    <!-- 컴포넌트 내용 동적 생성 -->
+                <div class="demo-result">
+                    <div class="image-placeholder">
+                        <h4>🔄 Flowchart 렌더링 결과</h4>
+                        <p><strong>PROMPT:</strong> Simple flowchart diagram showing login flow, with rounded rectangles and diamond decision node, arrows connecting Start to Login Check to Dashboard or Login Page, clean minimal style with blue and gray colors</p>
+                    </div>
                 </div>
             </div>
         </div>
+    </section>
 
-        <!-- 레퍼런스 토글 버튼 -->
-        <button id="toggleReference" class="toggle-reference-btn" title="컴포넌트 레퍼런스">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-            </svg>
-            <span>레퍼런스</span>
-        </button>
-    </div>
+    <!-- Features Grid -->
+    <section class="features">
+        <div class="container">
+            <div class="features-header">
+                <span class="section-label">Features</span>
+                <h2 class="section-title">개발자를 위한 20가지 핵심 기능</h2>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>실시간 프리뷰</h3>
+                    <p>코드를 작성하는 즉시 결과물을 확인할 수 있습니다. Ctrl+Enter로 즉시 렌더링.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3>AI 네이티브</h3>
+                    <p>ChatGPT, Claude가 바로 이해하고 생성할 수 있는 텍스트 문법. 프롬프트 한 번으로 와이어프레임 완성.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📝</div>
+                    <h3>마크다운급 쉬운 문법</h3>
+                    <p>복잡한 도구 학습 없이 직관적인 문법으로 시작. 10분이면 기본기 마스터.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔧</div>
+                    <h3>Git 버전 관리</h3>
+                    <p>텍스트 파일이라 Git으로 완벽 관리. 브랜치, 머지, 코드 리뷰 모두 가능.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <h3>팀 협업 최적화</h3>
+                    <p>PR로 와이어프레임 리뷰하고, 댓글로 피드백. 디자이너-개발자 간 명확한 소통.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📤</div>
+                    <h3>SVG/PNG 내보내기</h3>
+                    <p>고품질 벡터 이미지로 저장. 문서, 프레젠테이션에 바로 활용.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🆓</div>
+                    <h3>완전 무료</h3>
+                    <p>오픈소스로 무료 제공. 설치 없이 브라우저에서 바로 사용.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3>50+ UI 컴포넌트</h3>
+                    <p>버튼, 입력폼, 카드, 네비게이션 등 실제 앱에 필요한 모든 컴포넌트.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>10가지 다이어그램</h3>
+                    <p>Flowchart, ER, Class, Sequence, Gantt, Mindmap 등 모든 설계 다이어그램 지원.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3>빠른 반복 수정</h3>
+                    <p>드래그 없이 텍스트만 수정. 컴포넌트 순서 변경도 복사-붙여넣기로 끝.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>반응형 미리보기</h3>
+                    <p>모바일, 태블릿, 데스크톱 크기로 전환하며 확인.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🧩</div>
+                    <h3>컴포넌트 레퍼런스</h3>
+                    <p>모든 컴포넌트의 문법과 예제를 즉시 확인할 수 있는 내장 가이드.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>개발 스펙 자동화</h3>
+                    <p>와이어프레임이 곧 개발 문서. 개발자가 바로 구현 가능한 명세.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <h3>pSEO 사이트 기획</h3>
+                    <p>수천 페이지의 프로그래매틱 SEO 사이트도 체계적으로 설계.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🗄️</div>
+                    <h3>DB 스키마 설계</h3>
+                    <p>ER 다이어그램으로 테이블 관계를 명확하게 시각화.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔌</div>
+                    <h3>API 흐름 설계</h3>
+                    <p>Sequence 다이어그램으로 시스템 간 통신을 한눈에.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📈</div>
+                    <h3>프로젝트 일정 관리</h3>
+                    <p>Gantt 차트로 구현 순서와 의존성을 명확하게.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🗺️</div>
+                    <h3>사용자 여정 맵</h3>
+                    <p>Journey 다이어그램으로 UX 흐름과 감정 곡선 시각화.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💡</div>
+                    <h3>아이디어 정리</h3>
+                    <p>Mindmap으로 브레인스토밍 결과를 구조화.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🏗️</div>
+                    <h3>클래스 설계</h3>
+                    <p>Class 다이어그램으로 객체지향 아키텍처 설계.</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-    <script src="parser.js"></script>
-    <script src="renderer.js"></script>
-    <script src="app.js"></script>
+    <!-- Diagrams Section -->
+    <section class="diagrams" id="diagrams">
+        <div class="container">
+            <div class="diagrams-header">
+                <span class="section-label">Diagrams</span>
+                <h2 class="section-title">10가지 다이어그램으로<br>모든 설계를 커버</h2>
+            </div>
+            <div class="diagrams-grid">
+                <div class="diagram-card">
+                    <div class="diagram-icon">📊</div>
+                    <h3>Flowchart</h3>
+                    <p>프로세스 흐름</p>
+                </div>
+                <div class="diagram-card">
+                    <div class="diagram-icon">🔄</div>
+                    <h3>Sequence</h3>
+                    <p>API 통신</p>
+                </div>
+                <div class="diagram-card">
+                    <div class="diagram-icon">🔘</div>
+                    <h3>State</h3>
+                    <p>상태 전이</p>
+                </div>
+                <div class="diagram-card">
+                    <div class="diagram-icon">🧠</div>
+                    <h3>Mindmap</h3>
+                    <p>아이디어 구조화</p>
+                </div>
+                <div class="diagram-card">
+                    <div class="diagram-icon">🥧</div>
+                    <h3>Pie Chart</h3>
+                    <p>비율 시각화</p>
+                </div>
+                <div class="diagram-card">
+                    <div class="diagram-icon">📦</div>
+                    <h3>Class</h3>
+                    <p>객체 설계</p>
+                </div>
+                <div class="diagram-card">
+                    <div class="diagram-icon">🗄️</div>
+                    <h3>ER Diagram</h3>
+                    <p>DB 스키마</p>
+                </div>
+                <div class="diagram-card">
+                    <div class="diagram-icon">📅</div>
+                    <h3>Gantt</h3>
+                    <p>구현 순서</p>
+                </div>
+                <div class="diagram-card">
+                    <div class="diagram-icon">🚶</div>
+                    <h3>Journey</h3>
+                    <p>사용자 경험</p>
+                </div>
+                <div class="diagram-card">
+                    <div class="diagram-icon">📱</div>
+                    <h3>Wireframe</h3>
+                    <p>UI 목업</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Use Cases Section -->
+    <section class="use-cases" id="use-cases">
+        <div class="container">
+            <div class="use-cases-header">
+                <span class="section-label">Use Cases</span>
+                <h2 class="section-title">이런 분들에게 추천합니다</h2>
+            </div>
+
+            <div class="use-case-content">
+                <div class="use-case-text">
+                    <h3>스타트업 창업자 & PM</h3>
+                    <p>
+                        아이디어를 빠르게 시각화하고 팀과 공유하세요.
+                        투자자 미팅 전 프로토타입이 필요할 때, AI에게 설명하듯 작성하면
+                        몇 분 안에 전문적인 와이어프레임이 완성됩니다.
+                        개발팀에게 전달할 명세서도 자동으로 생성되니 소통 비용이 획기적으로 줄어듭니다.
+                    </p>
+                    <ul class="use-case-list">
+                        <li>AI와 대화하듯 프로토타입 생성</li>
+                        <li>투자자 피칭용 화면 설계 5분 완성</li>
+                        <li>개발팀과의 명확한 스펙 공유</li>
+                        <li>빠른 피드백 반영으로 린하게 검증</li>
+                    </ul>
+                </div>
+                <div class="use-case-image">
+                    <div class="image-placeholder">
+                        <h4>📱 스타트업 앱 와이어프레임</h4>
+                        <p><strong>PROMPT:</strong> Modern mobile app wireframe mockup showing startup pitch screens, clean UI with user onboarding flow, minimal line art style, white background with soft shadows, professional presentation quality</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="use-case-content" style="margin-top: 80px;">
+                <div class="use-case-image">
+                    <div class="image-placeholder">
+                        <h4>💻 개발자 IDE 화면</h4>
+                        <p><strong>PROMPT:</strong> Developer workspace with code editor showing diagram syntax on left side and rendered wireframe preview on right, dark theme IDE interface, split screen view, professional development environment</p>
+                    </div>
+                </div>
+                <div class="use-case-text">
+                    <h3>프론트엔드 개발자</h3>
+                    <p>
+                        디자인 파일을 기다리지 마세요. 기획 단계에서 바로 와이어프레임을 작성하고,
+                        컴포넌트 구조를 미리 설계할 수 있습니다.
+                        Git으로 버전 관리되니 코드와 함께 관리하기도 편하고,
+                        코드 리뷰처럼 와이어프레임 리뷰도 가능합니다.
+                    </p>
+                    <ul class="use-case-list">
+                        <li>Figma 대기 없이 바로 설계 시작</li>
+                        <li>컴포넌트 구조 사전 파악</li>
+                        <li>Git 버전 관리로 히스토리 추적</li>
+                        <li>PR 리뷰로 설계 검토</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="use-case-content" style="margin-top: 80px;">
+                <div class="use-case-text">
+                    <h3>백엔드 개발자 & DBA</h3>
+                    <p>
+                        복잡한 시스템 아키텍처를 텍스트로 명확하게 정의하세요.
+                        ER 다이어그램으로 데이터베이스 스키마를 설계하고,
+                        Sequence 다이어그램으로 API 흐름을 문서화하세요.
+                        코드처럼 작성하니 개발자에게 익숙하고, 유지보수도 쉽습니다.
+                    </p>
+                    <ul class="use-case-list">
+                        <li>ER 다이어그램으로 DB 설계</li>
+                        <li>Sequence로 마이크로서비스 통신 시각화</li>
+                        <li>Class 다이어그램으로 도메인 모델링</li>
+                        <li>State 다이어그램으로 상태 머신 설계</li>
+                    </ul>
+                </div>
+                <div class="use-case-image">
+                    <div class="image-placeholder">
+                        <h4>🗄️ ER 다이어그램 렌더링</h4>
+                        <p><strong>PROMPT:</strong> Entity Relationship diagram showing database schema with multiple tables connected by relationship lines, clean technical diagram style, white background, showing User, Order, Product entities with attributes and foreign keys</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="benefits">
+        <div class="container">
+            <div class="benefits-header">
+                <span class="section-label">Benefits</span>
+                <h2 class="section-title">DiagramFlow를 선택해야 하는 이유</h2>
+            </div>
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <div class="benefit-number">01</div>
+                    <h3>10배 빠른 프로토타이핑</h3>
+                    <p>드래그 앤 드롭 없이 타이핑만으로 와이어프레임을 만드세요. 생각하는 속도로 설계하고, 수정도 텍스트 편집만큼 빠릅니다. AI와 함께라면 프롬프트 한 번으로 전체 화면이 완성됩니다.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-number">02</div>
+                    <h3>개발자 워크플로우 통합</h3>
+                    <p>VS Code에서 작성하고, Git으로 관리하고, PR로 리뷰받으세요. 디자인 도구와 개발 환경을 오가지 않아도 됩니다. 코드와 설계가 같은 저장소에서 함께 관리됩니다.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-number">03</div>
+                    <h3>AI 협업의 새로운 표준</h3>
+                    <p>텍스트 기반이라 AI가 완벽하게 이해하고 생성할 수 있습니다. "장바구니 페이지 만들어줘"라고 요청하면 바로 사용 가능한 와이어프레임 코드가 생성됩니다.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-number">04</div>
+                    <h3>팀 협업 비용 절감</h3>
+                    <p>기획자가 작성한 와이어프레임을 개발자가 바로 이해하고 구현합니다. "이 버튼 3px 왼쪽으로" 같은 커뮤니케이션이 필요 없어집니다. 텍스트가 곧 스펙입니다.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-number">05</div>
+                    <h3>모든 설계를 한 곳에서</h3>
+                    <p>와이어프레임, 플로우차트, ER 다이어그램, API 시퀀스, 프로젝트 일정까지. 하나의 도구에서 모든 설계 다이어그램을 일관된 문법으로 작성하세요.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-number">06</div>
+                    <h3>즉시 시작, 비용 제로</h3>
+                    <p>회원가입도, 설치도, 결제도 필요 없습니다. 브라우저만 열면 바로 시작. 오픈소스라서 영원히 무료이고, 원하면 직접 호스팅할 수도 있습니다.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Comparison Section -->
+    <section class="comparison">
+        <div class="container">
+            <div class="comparison-header">
+                <span class="section-label">Comparison</span>
+                <h2 class="section-title">다른 도구와 비교</h2>
+            </div>
+            <div class="comparison-table">
+                <div class="comparison-row comparison-header-row">
+                    <div class="comparison-cell">기능</div>
+                    <div class="comparison-cell highlight-col">DiagramFlow</div>
+                    <div class="comparison-cell">Figma</div>
+                    <div class="comparison-cell">Mermaid</div>
+                </div>
+                <div class="comparison-row">
+                    <div class="comparison-cell comparison-feature">와이어프레임 컴포넌트</div>
+                    <div class="comparison-cell highlight-col"><span class="check">✓</span> 50+</div>
+                    <div class="comparison-cell"><span class="check">✓</span></div>
+                    <div class="comparison-cell"><span class="cross">✗</span></div>
+                </div>
+                <div class="comparison-row">
+                    <div class="comparison-cell comparison-feature">다이어그램 지원</div>
+                    <div class="comparison-cell highlight-col"><span class="check">✓</span> 10가지</div>
+                    <div class="comparison-cell"><span class="cross">✗</span></div>
+                    <div class="comparison-cell"><span class="check">✓</span></div>
+                </div>
+                <div class="comparison-row">
+                    <div class="comparison-cell comparison-feature">Git 버전 관리</div>
+                    <div class="comparison-cell highlight-col"><span class="check">✓</span></div>
+                    <div class="comparison-cell"><span class="cross">✗</span></div>
+                    <div class="comparison-cell"><span class="check">✓</span></div>
+                </div>
+                <div class="comparison-row">
+                    <div class="comparison-cell comparison-feature">AI 생성 호환</div>
+                    <div class="comparison-cell highlight-col"><span class="check">✓</span></div>
+                    <div class="comparison-cell"><span class="cross">✗</span></div>
+                    <div class="comparison-cell"><span class="check">✓</span></div>
+                </div>
+                <div class="comparison-row">
+                    <div class="comparison-cell comparison-feature">학습 시간</div>
+                    <div class="comparison-cell highlight-col">10분</div>
+                    <div class="comparison-cell">수일</div>
+                    <div class="comparison-cell">30분</div>
+                </div>
+                <div class="comparison-row">
+                    <div class="comparison-cell comparison-feature">무료 사용</div>
+                    <div class="comparison-cell highlight-col"><span class="check">✓</span> 완전 무료</div>
+                    <div class="comparison-cell">제한적</div>
+                    <div class="comparison-cell"><span class="check">✓</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonial Section -->
+    <section class="testimonial">
+        <div class="container">
+            <div class="testimonial-content">
+                <p class="testimonial-quote">
+                    "Claude에게 '쇼핑몰 앱 와이어프레임 만들어줘'라고 했더니
+                    바로 사용 가능한 코드가 나왔습니다.
+                    Figma로 며칠 걸릴 작업을 10분 만에 끝냈어요.
+                    이제 프로토타이핑은 DiagramFlow로만 합니다."
+                </p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar"></div>
+                    <div class="testimonial-info">
+                        <h4>김개발</h4>
+                        <p>스타트업 CTO</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <!-- 배경 이미지 영역 -->
+        <!-- TITLE: Tech Abstract Background -->
+        <!-- PROMPT: Dark abstract technology background with subtle gradient from deep purple to dark blue, geometric patterns of connected dots and lines representing data flow, soft glowing nodes, futuristic minimal aesthetic, 4K wallpaper quality -->
+        <div class="cta-content">
+            <h2>지금 바로 시작하세요</h2>
+            <p>
+                회원가입도, 설치도, 결제도 필요 없습니다.
+                브라우저에서 바로 와이어프레임과 다이어그램을 만들어보세요.
+                AI와 함께라면 5분이면 충분합니다.
+            </p>
+            <div class="cta-buttons">
+                <a href="app/" class="btn btn-primary btn-large">무료로 시작하기 →</a>
+                <a href="https://github.com" target="_blank" class="btn btn-secondary btn-large">GitHub에서 보기</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <a href="/" class="logo">Diagram<span>Flow</span></a>
+                    <p style="margin-top: 8px;">코드로 만드는 와이어프레임</p>
+                </div>
+                <div class="footer-links">
+                    <a href="app/">에디터</a>
+                    <a href="README.md">문서</a>
+                    <a href="https://github.com" target="_blank">GitHub</a>
+                    <a href="mailto:contact@example.com">문의</a>
+                </div>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>
