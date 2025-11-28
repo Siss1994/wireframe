@@ -43,7 +43,7 @@ wireframe/
 ├── parser.js       # 다이어그램 파서
 ├── renderer.js     # SVG 렌더러
 ├── app.js          # 앱 로직 및 컴포넌트 레퍼런스
-└── DOCS.md         # 이 문서
+└── README.md         # 이 문서
 ```
 
 ---
