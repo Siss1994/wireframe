@@ -2351,6 +2351,702 @@ class DiagramRenderer {
             case 'post':
                 return this.renderWfPost(svg, item, ctx);
 
+            case 'radio':
+                const radioSize = 20;
+                const radioCircle = this.createCircle(ctx.x + radioSize / 2, ctx.y + radioSize / 2 + 2, radioSize / 2, {
+                    fill: '#FFF', stroke: item.checked ? '#3498DB' : '#DDD', strokeWidth: 2
+                });
+                svg.appendChild(radioCircle);
+                if (item.checked) {
+                    const innerCircle = this.createCircle(ctx.x + radioSize / 2, ctx.y + radioSize / 2 + 2, 6, {
+                        fill: '#3498DB', stroke: 'none'
+                    });
+                    svg.appendChild(innerCircle);
+                }
+                const radioLabel = this.createText(ctx.x + radioSize + 10, ctx.y + 16, item.label, {
+                    fontSize: '13', fill: '#333', anchor: 'start'
+                });
+                svg.appendChild(radioLabel);
+                return { height: 28 };
+
+            case 'toggle':
+                const toggleW = 50;
+                const toggleH = 26;
+                const toggleBg = this.createRect(ctx.x, ctx.y, toggleW, toggleH, {
+                    fill: item.on ? '#3498DB' : '#DDD', stroke: 'none', rx: toggleH / 2
+                });
+                svg.appendChild(toggleBg);
+                const knobX = item.on ? ctx.x + toggleW - toggleH + 3 : ctx.x + 3;
+                const knob = this.createCircle(knobX + 10, ctx.y + toggleH / 2, 10, {
+                    fill: '#FFF', stroke: 'none'
+                });
+                svg.appendChild(knob);
+                const toggleLabel = this.createText(ctx.x + toggleW + 12, ctx.y + 18, item.label, {
+                    fontSize: '13', fill: '#333', anchor: 'start'
+                });
+                svg.appendChild(toggleLabel);
+                return { height: 32 };
+
+            case 'badge':
+                const badgeColors = {
+                    red: '#E74C3C', green: '#2ECC71', blue: '#3498DB',
+                    yellow: '#F39C12', gray: '#95A5A6'
+                };
+                const badgeW = Math.max(item.text.length * 8 + 16, 30);
+                const badgeH = 22;
+                const badgeBg = this.createRect(ctx.x, ctx.y, badgeW, badgeH, {
+                    fill: badgeColors[item.color] || badgeColors.blue, stroke: 'none', rx: badgeH / 2
+                });
+                svg.appendChild(badgeBg);
+                const badgeText = this.createText(ctx.x + badgeW / 2, ctx.y + 15, item.text, {
+                    fontSize: '11', fill: '#FFF', fontWeight: 'bold'
+                });
+                svg.appendChild(badgeText);
+                return { height: 28 };
+
+            case 'tabs':
+                const tabsH = 44;
+                const tabW = ctx.width / item.items.length;
+                const tabsBg = this.createRect(ctx.x, ctx.y, ctx.width, tabsH, {
+                    fill: '#F5F5F5', stroke: '#E0E0E0', rx: 8
+                });
+                svg.appendChild(tabsBg);
+                item.items.forEach((tab, idx) => {
+                    const isActive = idx === item.activeIndex;
+                    if (isActive) {
+                        const activeTab = this.createRect(ctx.x + tabW * idx + 4, ctx.y + 4, tabW - 8, tabsH - 8, {
+                            fill: '#FFF', stroke: 'none', rx: 6
+                        });
+                        svg.appendChild(activeTab);
+                    }
+                    const tabText = this.createText(ctx.x + tabW * idx + tabW / 2, ctx.y + tabsH / 2 + 5, tab, {
+                        fontSize: '13', fill: isActive ? '#333' : '#666', fontWeight: isActive ? '600' : '400'
+                    });
+                    svg.appendChild(tabText);
+                });
+                return { height: tabsH + 8 };
+
+            case 'breadcrumb':
+                let bcX = ctx.x;
+                item.items.forEach((crumb, idx) => {
+                    const crumbText = this.createText(bcX, ctx.y + 14, crumb, {
+                        fontSize: '12', fill: idx === item.items.length - 1 ? '#333' : '#3498DB', anchor: 'start'
+                    });
+                    svg.appendChild(crumbText);
+                    bcX += crumb.length * 7 + 8;
+                    if (idx < item.items.length - 1) {
+                        const sep = this.createText(bcX, ctx.y + 14, '/', {
+                            fontSize: '12', fill: '#999', anchor: 'start'
+                        });
+                        svg.appendChild(sep);
+                        bcX += 12;
+                    }
+                });
+                return { height: 28 };
+
+            case 'progress':
+                const progH = 8;
+                const progBg = this.createRect(ctx.x, ctx.y + 8, ctx.width, progH, {
+                    fill: '#E0E0E0', stroke: 'none', rx: progH / 2
+                });
+                svg.appendChild(progBg);
+                const progFill = this.createRect(ctx.x, ctx.y + 8, ctx.width * (item.value / 100), progH, {
+                    fill: '#3498DB', stroke: 'none', rx: progH / 2
+                });
+                svg.appendChild(progFill);
+                if (item.label) {
+                    const progLabel = this.createText(ctx.x, ctx.y + 32, item.label, {
+                        fontSize: '12', fill: '#666', anchor: 'start'
+                    });
+                    svg.appendChild(progLabel);
+                    const progVal = this.createText(ctx.x + ctx.width, ctx.y + 32, item.value + '%', {
+                        fontSize: '12', fill: '#333', anchor: 'end'
+                    });
+                    svg.appendChild(progVal);
+                    return { height: 40 };
+                }
+                return { height: 24 };
+
+            case 'rating':
+                const starSize = 20;
+                for (let i = 0; i < 5; i++) {
+                    const filled = i < Math.floor(item.value);
+                    const half = i === Math.floor(item.value) && item.value % 1 >= 0.5;
+                    const star = this.createText(ctx.x + i * (starSize + 4), ctx.y + 16, '★', {
+                        fontSize: '18', fill: filled || half ? '#F39C12' : '#DDD', anchor: 'start'
+                    });
+                    svg.appendChild(star);
+                }
+                const ratingVal = this.createText(ctx.x + 5 * (starSize + 4) + 8, ctx.y + 16, item.value.toFixed(1), {
+                    fontSize: '14', fill: '#666', anchor: 'start'
+                });
+                svg.appendChild(ratingVal);
+                return { height: 28 };
+
+            case 'stepper':
+                const stepH = 60;
+                const stepW = ctx.width / item.steps.length;
+                item.steps.forEach((step, idx) => {
+                    const stepX = ctx.x + stepW * idx + stepW / 2;
+                    const isActive = idx + 1 === item.active;
+                    const isPast = idx + 1 < item.active;
+                    const circleColor = isPast || isActive ? '#3498DB' : '#DDD';
+                    const stepCircle = this.createCircle(stepX, ctx.y + 15, 15, {
+                        fill: isPast || isActive ? circleColor : '#FFF',
+                        stroke: circleColor, strokeWidth: 2
+                    });
+                    svg.appendChild(stepCircle);
+                    const stepNum = this.createText(stepX, ctx.y + 20, isPast ? '✓' : (idx + 1).toString(), {
+                        fontSize: '12', fill: isPast || isActive ? '#FFF' : '#999', fontWeight: 'bold'
+                    });
+                    svg.appendChild(stepNum);
+                    const stepLabel = this.createText(stepX, ctx.y + 45, step, {
+                        fontSize: '11', fill: isActive ? '#333' : '#666'
+                    });
+                    svg.appendChild(stepLabel);
+                    if (idx < item.steps.length - 1) {
+                        const lineX = stepX + 20;
+                        const lineColor = idx + 1 < item.active ? '#3498DB' : '#DDD';
+                        const stepLine = this.createLine(lineX, ctx.y + 15, ctx.x + stepW * (idx + 1) + stepW / 2 - 20, ctx.y + 15, {
+                            stroke: lineColor, strokeWidth: 2
+                        });
+                        svg.appendChild(stepLine);
+                    }
+                });
+                return { height: stepH };
+
+            case 'list':
+                let listY = ctx.y;
+                const listItemH = 28;
+                item.items.forEach((listItem, idx) => {
+                    let marker;
+                    if (item.listType === 'bullet') {
+                        marker = '•';
+                    } else if (item.listType === 'number') {
+                        marker = (idx + 1) + '.';
+                    } else {
+                        marker = '☑';
+                    }
+                    const markerText = this.createText(ctx.x, listY + 16, marker, {
+                        fontSize: '14', fill: item.listType === 'check' ? '#2ECC71' : '#666', anchor: 'start'
+                    });
+                    svg.appendChild(markerText);
+                    const listText = this.createText(ctx.x + 20, listY + 16, listItem, {
+                        fontSize: '13', fill: '#333', anchor: 'start'
+                    });
+                    svg.appendChild(listText);
+                    listY += listItemH;
+                });
+                return { height: item.items.length * listItemH };
+
+            case 'alert':
+                const alertH = 48;
+                const alertColors = {
+                    info: { bg: '#E3F2FD', border: '#2196F3', text: '#1565C0', icon: 'ⓘ' },
+                    success: { bg: '#E8F5E9', border: '#4CAF50', text: '#2E7D32', icon: '✓' },
+                    warning: { bg: '#FFF3E0', border: '#FF9800', text: '#E65100', icon: '⚠' },
+                    error: { bg: '#FFEBEE', border: '#F44336', text: '#C62828', icon: '✕' }
+                };
+                const alertStyle = alertColors[item.alertType] || alertColors.info;
+                const alertBg = this.createRect(ctx.x, ctx.y, ctx.width, alertH, {
+                    fill: alertStyle.bg, stroke: alertStyle.border, rx: 6
+                });
+                svg.appendChild(alertBg);
+                const alertIcon = this.createText(ctx.x + 16, ctx.y + alertH / 2 + 5, alertStyle.icon, {
+                    fontSize: '16', fill: alertStyle.text, anchor: 'start'
+                });
+                svg.appendChild(alertIcon);
+                const alertText = this.createText(ctx.x + 40, ctx.y + alertH / 2 + 5, item.message, {
+                    fontSize: '13', fill: alertStyle.text, anchor: 'start'
+                });
+                svg.appendChild(alertText);
+                return { height: alertH + 8 };
+
+            case 'tag':
+                const tagColors = {
+                    red: { bg: '#FFEBEE', text: '#C62828' },
+                    green: { bg: '#E8F5E9', text: '#2E7D32' },
+                    blue: { bg: '#E3F2FD', text: '#1565C0' },
+                    yellow: { bg: '#FFF8E1', text: '#F57F17' },
+                    gray: { bg: '#F5F5F5', text: '#616161' },
+                    purple: { bg: '#F3E5F5', text: '#6A1B9A' }
+                };
+                const tagStyle = tagColors[item.color] || tagColors.gray;
+                const tagW = item.text.length * 8 + 20;
+                const tagH = 26;
+                const tagBg = this.createRect(ctx.x, ctx.y, tagW, tagH, {
+                    fill: tagStyle.bg, stroke: 'none', rx: 4
+                });
+                svg.appendChild(tagBg);
+                const tagText = this.createText(ctx.x + tagW / 2, ctx.y + 17, item.text, {
+                    fontSize: '12', fill: tagStyle.text
+                });
+                svg.appendChild(tagText);
+                return { height: tagH + 8 };
+
+            case 'slider':
+                const sliderH = 6;
+                const sliderBg = this.createRect(ctx.x, ctx.y + 10, ctx.width, sliderH, {
+                    fill: '#E0E0E0', stroke: 'none', rx: sliderH / 2
+                });
+                svg.appendChild(sliderBg);
+                const sliderFill = this.createRect(ctx.x, ctx.y + 10, ctx.width * (item.value / 100), sliderH, {
+                    fill: '#3498DB', stroke: 'none', rx: sliderH / 2
+                });
+                svg.appendChild(sliderFill);
+                const sliderKnob = this.createCircle(ctx.x + ctx.width * (item.value / 100), ctx.y + 13, 10, {
+                    fill: '#3498DB', stroke: '#FFF', strokeWidth: 2
+                });
+                svg.appendChild(sliderKnob);
+                if (item.label) {
+                    const sliderLabel = this.createText(ctx.x, ctx.y + 40, item.label, {
+                        fontSize: '12', fill: '#666', anchor: 'start'
+                    });
+                    svg.appendChild(sliderLabel);
+                    return { height: 48 };
+                }
+                return { height: 32 };
+
+            case 'spacer':
+                return { height: item.size };
+
+            case 'heading':
+                const headingSizes = { 1: '24', 2: '20', 3: '16', 4: '14' };
+                const headingText = this.createText(ctx.x, ctx.y + parseInt(headingSizes[item.level] || '16'), item.text, {
+                    fontSize: headingSizes[item.level] || '16', fontWeight: 'bold', fill: '#333', anchor: 'start'
+                });
+                svg.appendChild(headingText);
+                return { height: parseInt(headingSizes[item.level] || '16') + 12 };
+
+            case 'paragraph':
+                const paraText = this.createText(ctx.x, ctx.y + 14, item.text, {
+                    fontSize: '13', fill: '#666', anchor: 'start'
+                });
+                svg.appendChild(paraText);
+                return { height: 24 };
+
+            case 'quote':
+                const quoteH = 60;
+                const quoteBg = this.createRect(ctx.x, ctx.y, ctx.width, quoteH, {
+                    fill: '#F9F9F9', stroke: 'none', rx: 4
+                });
+                svg.appendChild(quoteBg);
+                const quoteLine = this.createRect(ctx.x, ctx.y, 4, quoteH, {
+                    fill: '#3498DB', stroke: 'none', rx: 2
+                });
+                svg.appendChild(quoteLine);
+                const quoteText = this.createText(ctx.x + 16, ctx.y + 25, '"' + item.text + '"', {
+                    fontSize: '13', fill: '#555', anchor: 'start', fontStyle: 'italic'
+                });
+                svg.appendChild(quoteText);
+                if (item.author) {
+                    const quoteAuthor = this.createText(ctx.x + 16, ctx.y + 45, '— ' + item.author, {
+                        fontSize: '12', fill: '#999', anchor: 'start'
+                    });
+                    svg.appendChild(quoteAuthor);
+                }
+                return { height: quoteH + 8 };
+
+            case 'video':
+                const videoH = 180;
+                const videoBg = this.createRect(ctx.x, ctx.y, ctx.width, videoH, {
+                    fill: '#1A1A1A', stroke: 'none', rx: 8
+                });
+                svg.appendChild(videoBg);
+                const playCircle = this.createCircle(ctx.x + ctx.width / 2, ctx.y + videoH / 2, 30, {
+                    fill: 'rgba(255,255,255,0.9)', stroke: 'none'
+                });
+                svg.appendChild(playCircle);
+                const playIcon = this.createPath(`M ${ctx.x + ctx.width / 2 - 8} ${ctx.y + videoH / 2 - 12} l 24 12 l -24 12 z`, {
+                    fill: '#1A1A1A', stroke: 'none'
+                });
+                svg.appendChild(playIcon);
+                return { height: videoH + 8 };
+
+            case 'map':
+                const mapH = 180;
+                const mapBg = this.createRect(ctx.x, ctx.y, ctx.width, mapH, {
+                    fill: '#E8F4E8', stroke: '#CCC', rx: 8
+                });
+                svg.appendChild(mapBg);
+                for (let i = 0; i < 5; i++) {
+                    const roadLine = this.createLine(
+                        ctx.x + Math.random() * ctx.width * 0.3, ctx.y + Math.random() * mapH,
+                        ctx.x + ctx.width * 0.7 + Math.random() * ctx.width * 0.3, ctx.y + Math.random() * mapH,
+                        { stroke: '#FFF', strokeWidth: 2 }
+                    );
+                    svg.appendChild(roadLine);
+                }
+                const pinX = ctx.x + ctx.width / 2;
+                const pinY = ctx.y + mapH / 2;
+                const pin = this.createPath(`M ${pinX} ${pinY + 20} Q ${pinX - 12} ${pinY} ${pinX} ${pinY - 15} Q ${pinX + 12} ${pinY} ${pinX} ${pinY + 20}`, {
+                    fill: '#E74C3C', stroke: '#C0392B', strokeWidth: 1
+                });
+                svg.appendChild(pin);
+                const pinDot = this.createCircle(pinX, pinY - 5, 4, { fill: '#FFF', stroke: 'none' });
+                svg.appendChild(pinDot);
+                return { height: mapH + 8 };
+
+            case 'carousel':
+                const carH = 150;
+                const carBg = this.createRect(ctx.x, ctx.y, ctx.width, carH, {
+                    fill: '#F0F0F0', stroke: '#E0E0E0', rx: 8
+                });
+                svg.appendChild(carBg);
+                const carText = this.createText(ctx.x + ctx.width / 2, ctx.y + carH / 2, item.items[0] || 'Slide 1', {
+                    fontSize: '14', fill: '#666'
+                });
+                svg.appendChild(carText);
+                const dotsY = ctx.y + carH - 20;
+                item.items.forEach((_, idx) => {
+                    const dot = this.createCircle(ctx.x + ctx.width / 2 - (item.items.length - 1) * 8 + idx * 16, dotsY, idx === 0 ? 5 : 4, {
+                        fill: idx === 0 ? '#3498DB' : '#CCC', stroke: 'none'
+                    });
+                    svg.appendChild(dot);
+                });
+                const leftArrow = this.createPath(`M ${ctx.x + 15} ${ctx.y + carH / 2} l 8 -8 M ${ctx.x + 15} ${ctx.y + carH / 2} l 8 8`, {
+                    stroke: '#999', strokeWidth: 2, fill: 'none'
+                });
+                svg.appendChild(leftArrow);
+                const rightArrow = this.createPath(`M ${ctx.x + ctx.width - 15} ${ctx.y + carH / 2} l -8 -8 M ${ctx.x + ctx.width - 15} ${ctx.y + carH / 2} l -8 8`, {
+                    stroke: '#999', strokeWidth: 2, fill: 'none'
+                });
+                svg.appendChild(rightArrow);
+                return { height: carH + 8 };
+
+            case 'timeline':
+                let tlY = ctx.y;
+                const tlItemH = 60;
+                item.events.forEach((event, idx) => {
+                    const dotX = ctx.x + 10;
+                    const dot = this.createCircle(dotX, tlY + 10, 6, {
+                        fill: idx === 0 ? '#3498DB' : '#DDD', stroke: 'none'
+                    });
+                    svg.appendChild(dot);
+                    if (idx < item.events.length - 1) {
+                        const line = this.createLine(dotX, tlY + 20, dotX, tlY + tlItemH, {
+                            stroke: '#DDD', strokeWidth: 2
+                        });
+                        svg.appendChild(line);
+                    }
+                    const eventText = this.createText(ctx.x + 30, tlY + 14, event, {
+                        fontSize: '13', fill: '#333', anchor: 'start'
+                    });
+                    svg.appendChild(eventText);
+                    tlY += tlItemH;
+                });
+                return { height: item.events.length * tlItemH };
+
+            case 'skeleton':
+                let skY = ctx.y;
+                const skCount = item.count || 1;
+                for (let i = 0; i < skCount; i++) {
+                    if (item.skeletonType === 'text') {
+                        const line1 = this.createRect(ctx.x, skY, ctx.width, 12, {
+                            fill: '#E0E0E0', stroke: 'none', rx: 4
+                        });
+                        svg.appendChild(line1);
+                        const line2 = this.createRect(ctx.x, skY + 20, ctx.width * 0.7, 12, {
+                            fill: '#E0E0E0', stroke: 'none', rx: 4
+                        });
+                        svg.appendChild(line2);
+                        skY += 45;
+                    } else if (item.skeletonType === 'card') {
+                        const cardSk = this.createRect(ctx.x, skY, ctx.width, 80, {
+                            fill: '#E0E0E0', stroke: 'none', rx: 8
+                        });
+                        svg.appendChild(cardSk);
+                        skY += 90;
+                    } else if (item.skeletonType === 'avatar') {
+                        const avSk = this.createCircle(ctx.x + 20, skY + 20, 20, {
+                            fill: '#E0E0E0', stroke: 'none'
+                        });
+                        svg.appendChild(avSk);
+                        const avLineSk = this.createRect(ctx.x + 50, skY + 10, 100, 12, {
+                            fill: '#E0E0E0', stroke: 'none', rx: 4
+                        });
+                        svg.appendChild(avLineSk);
+                        skY += 50;
+                    } else if (item.skeletonType === 'image') {
+                        const imgSk = this.createRect(ctx.x, skY, ctx.width, 120, {
+                            fill: '#E0E0E0', stroke: 'none', rx: 8
+                        });
+                        svg.appendChild(imgSk);
+                        skY += 130;
+                    }
+                }
+                return { height: skY - ctx.y };
+
+            case 'accordion':
+                let accY = ctx.y;
+                const accItemH = 48;
+                item.items.forEach((title, idx) => {
+                    const accBg = this.createRect(ctx.x, accY, ctx.width, accItemH, {
+                        fill: '#FFF', stroke: '#E0E0E0', rx: idx === 0 ? 8 : 0
+                    });
+                    svg.appendChild(accBg);
+                    const accTitle = this.createText(ctx.x + 16, accY + accItemH / 2 + 5, title, {
+                        fontSize: '14', fill: '#333', anchor: 'start'
+                    });
+                    svg.appendChild(accTitle);
+                    const accArrow = this.createPath(`M ${ctx.x + ctx.width - 20} ${accY + accItemH / 2 - 3} l 6 6 l 6 -6`, {
+                        stroke: '#666', strokeWidth: 2, fill: 'none'
+                    });
+                    svg.appendChild(accArrow);
+                    accY += accItemH - 1;
+                });
+                return { height: accY - ctx.y + 8 };
+
+            case 'chip':
+                let chipX = ctx.x;
+                const chipH = 32;
+                item.items.forEach((chipText) => {
+                    const chipW = chipText.length * 8 + 24;
+                    const chipBg = this.createRect(chipX, ctx.y, chipW, chipH, {
+                        fill: '#F0F0F0', stroke: '#E0E0E0', rx: chipH / 2
+                    });
+                    svg.appendChild(chipBg);
+                    const chipLabel = this.createText(chipX + chipW / 2, ctx.y + chipH / 2 + 5, chipText, {
+                        fontSize: '12', fill: '#333'
+                    });
+                    svg.appendChild(chipLabel);
+                    chipX += chipW + 8;
+                });
+                return { height: chipH + 8 };
+
+            case 'tooltip':
+                const ttW = item.text.length * 7 + 20;
+                const ttH = 30;
+                const ttBg = this.createRect(ctx.x, ctx.y, ttW, ttH, {
+                    fill: '#333', stroke: 'none', rx: 4
+                });
+                svg.appendChild(ttBg);
+                const ttArrow = this.createPath(`M ${ctx.x + ttW / 2 - 6} ${ctx.y + ttH} l 6 8 l 6 -8`, {
+                    fill: '#333', stroke: 'none'
+                });
+                svg.appendChild(ttArrow);
+                const ttText = this.createText(ctx.x + ttW / 2, ctx.y + ttH / 2 + 5, item.text, {
+                    fontSize: '12', fill: '#FFF'
+                });
+                svg.appendChild(ttText);
+                return { height: ttH + 16 };
+
+            case 'modal':
+                const modalW = Math.min(ctx.width, 280);
+                const modalH = 150;
+                const modalX = ctx.x + (ctx.width - modalW) / 2;
+                const modalBg = this.createRect(modalX, ctx.y, modalW, modalH, {
+                    fill: '#FFF', stroke: '#E0E0E0', rx: 12
+                });
+                svg.appendChild(modalBg);
+                const modalHeader = this.createRect(modalX, ctx.y, modalW, 44, {
+                    fill: '#F9F9F9', stroke: 'none', rx: 12
+                });
+                svg.appendChild(modalHeader);
+                const modalTitle = this.createText(modalX + modalW / 2, ctx.y + 28, item.title, {
+                    fontSize: '14', fontWeight: 'bold', fill: '#333'
+                });
+                svg.appendChild(modalTitle);
+                const modalClose = this.createText(modalX + modalW - 16, ctx.y + 28, '×', {
+                    fontSize: '20', fill: '#999', anchor: 'end'
+                });
+                svg.appendChild(modalClose);
+                const modalContent = this.createRect(modalX + 16, ctx.y + 60, modalW - 32, 30, {
+                    fill: '#F0F0F0', stroke: 'none', rx: 4
+                });
+                svg.appendChild(modalContent);
+                const modalBtn = this.createRect(modalX + modalW - 80, ctx.y + modalH - 44, 64, 32, {
+                    fill: '#3498DB', stroke: 'none', rx: 6
+                });
+                svg.appendChild(modalBtn);
+                const modalBtnText = this.createText(modalX + modalW - 48, ctx.y + modalH - 22, '확인', {
+                    fontSize: '13', fill: '#FFF'
+                });
+                svg.appendChild(modalBtnText);
+                return { height: modalH + 16 };
+
+            case 'form':
+                const formH = 200;
+                const formBg = this.createRect(ctx.x, ctx.y, ctx.width, formH, {
+                    fill: '#FFF', stroke: '#E0E0E0', rx: 8
+                });
+                svg.appendChild(formBg);
+                const formTitle = this.createText(ctx.x + ctx.width / 2, ctx.y + 30, item.title, {
+                    fontSize: '16', fontWeight: 'bold', fill: '#333'
+                });
+                svg.appendChild(formTitle);
+                for (let i = 0; i < 3; i++) {
+                    const fieldY = ctx.y + 50 + i * 45;
+                    const field = this.createRect(ctx.x + 16, fieldY, ctx.width - 32, 36, {
+                        fill: '#FFF', stroke: '#DDD', rx: 6
+                    });
+                    svg.appendChild(field);
+                }
+                const formBtn = this.createRect(ctx.x + 16, ctx.y + formH - 50, ctx.width - 32, 36, {
+                    fill: '#3498DB', stroke: 'none', rx: 6
+                });
+                svg.appendChild(formBtn);
+                const formBtnText = this.createText(ctx.x + ctx.width / 2, ctx.y + formH - 26, '제출', {
+                    fontSize: '14', fontWeight: '600', fill: '#FFF'
+                });
+                svg.appendChild(formBtnText);
+                return { height: formH + 8 };
+
+            case 'stats':
+                const statsH = 70;
+                const statsBg = this.createRect(ctx.x, ctx.y, ctx.width, statsH, {
+                    fill: '#FFF', stroke: '#E0E0E0', rx: 8
+                });
+                svg.appendChild(statsBg);
+                if (item.icon) {
+                    this.renderWfIcon(svg, item.icon, ctx.x + 16, ctx.y + 20, 28, '#3498DB');
+                }
+                const statsLabel = this.createText(ctx.x + (item.icon ? 60 : 16), ctx.y + 28, item.label, {
+                    fontSize: '12', fill: '#666', anchor: 'start'
+                });
+                svg.appendChild(statsLabel);
+                const statsValue = this.createText(ctx.x + (item.icon ? 60 : 16), ctx.y + 50, item.value, {
+                    fontSize: '20', fontWeight: 'bold', fill: '#333', anchor: 'start'
+                });
+                svg.appendChild(statsValue);
+                return { height: statsH + 8 };
+
+            case 'social':
+                const socialIcons = {
+                    facebook: '#1877F2', twitter: '#1DA1F2', instagram: '#E4405F',
+                    linkedin: '#0A66C2', youtube: '#FF0000', github: '#333'
+                };
+                let socX = ctx.x;
+                item.networks.forEach((network) => {
+                    const socCircle = this.createCircle(socX + 18, ctx.y + 18, 18, {
+                        fill: socialIcons[network.toLowerCase()] || '#999', stroke: 'none'
+                    });
+                    svg.appendChild(socCircle);
+                    const initial = network.charAt(0).toUpperCase();
+                    const socText = this.createText(socX + 18, ctx.y + 24, initial, {
+                        fontSize: '14', fontWeight: 'bold', fill: '#FFF'
+                    });
+                    svg.appendChild(socText);
+                    socX += 44;
+                });
+                return { height: 44 };
+
+            case 'calendar':
+                const calH = 220;
+                const calW = ctx.width;
+                const calBg = this.createRect(ctx.x, ctx.y, calW, calH, {
+                    fill: '#FFF', stroke: '#E0E0E0', rx: 8
+                });
+                svg.appendChild(calBg);
+                const calHeader = this.createRect(ctx.x, ctx.y, calW, 40, {
+                    fill: '#3498DB', stroke: 'none', rx: 8
+                });
+                svg.appendChild(calHeader);
+                const calMonth = this.createText(ctx.x + calW / 2, ctx.y + 26, '2024년 1월', {
+                    fontSize: '14', fontWeight: 'bold', fill: '#FFF'
+                });
+                svg.appendChild(calMonth);
+                const days = ['일', '월', '화', '수', '목', '금', '토'];
+                const dayW = calW / 7;
+                days.forEach((day, idx) => {
+                    const dayText = this.createText(ctx.x + dayW * idx + dayW / 2, ctx.y + 60, day, {
+                        fontSize: '11', fill: idx === 0 ? '#E74C3C' : '#666'
+                    });
+                    svg.appendChild(dayText);
+                });
+                for (let row = 0; row < 5; row++) {
+                    for (let col = 0; col < 7; col++) {
+                        const dateNum = row * 7 + col + 1;
+                        if (dateNum <= 31) {
+                            const dateText = this.createText(ctx.x + dayW * col + dayW / 2, ctx.y + 90 + row * 25, dateNum.toString(), {
+                                fontSize: '12', fill: col === 0 ? '#E74C3C' : '#333'
+                            });
+                            svg.appendChild(dateText);
+                        }
+                    }
+                }
+                return { height: calH + 8 };
+
+            case 'textarea':
+                const taH = 100;
+                const taBg = this.createRect(ctx.x, ctx.y, ctx.width, taH, {
+                    fill: '#FFF', stroke: '#DDD', rx: 6
+                });
+                svg.appendChild(taBg);
+                const taText = this.createText(ctx.x + 12, ctx.y + 24, item.placeholder, {
+                    fontSize: '13', fill: '#999', anchor: 'start'
+                });
+                svg.appendChild(taText);
+                const taHandle = this.createPath(`M ${ctx.x + ctx.width - 16} ${ctx.y + taH - 4} l 8 -8 M ${ctx.x + ctx.width - 12} ${ctx.y + taH - 4} l 4 -4`, {
+                    stroke: '#CCC', strokeWidth: 1, fill: 'none'
+                });
+                svg.appendChild(taHandle);
+                return { height: taH + 8 };
+
+            case 'file':
+                const fileH = 80;
+                const fileBg = this.createRect(ctx.x, ctx.y, ctx.width, fileH, {
+                    fill: '#FAFAFA', stroke: '#DDD', rx: 8, strokeDasharray: '6,4'
+                });
+                svg.appendChild(fileBg);
+                const fileIcon = this.createText(ctx.x + ctx.width / 2, ctx.y + 35, '📁', {
+                    fontSize: '24', fill: '#999'
+                });
+                svg.appendChild(fileIcon);
+                const fileLabel = this.createText(ctx.x + ctx.width / 2, ctx.y + 60, item.label, {
+                    fontSize: '12', fill: '#666'
+                });
+                svg.appendChild(fileLabel);
+                return { height: fileH + 8 };
+
+            case 'color':
+                const colorH = 40;
+                const colorPreview = this.createRect(ctx.x, ctx.y, 40, colorH, {
+                    fill: '#3498DB', stroke: '#DDD', rx: 6
+                });
+                svg.appendChild(colorPreview);
+                const colorInput = this.createRect(ctx.x + 48, ctx.y, ctx.width - 48, colorH, {
+                    fill: '#FFF', stroke: '#DDD', rx: 6
+                });
+                svg.appendChild(colorInput);
+                const colorText = this.createText(ctx.x + 60, ctx.y + colorH / 2 + 5, item.label, {
+                    fontSize: '13', fill: '#333', anchor: 'start'
+                });
+                svg.appendChild(colorText);
+                return { height: colorH + 8 };
+
+            case 'date':
+                const dateH = 44;
+                const dateBg = this.createRect(ctx.x, ctx.y, ctx.width, dateH, {
+                    fill: '#FFF', stroke: '#DDD', rx: 6
+                });
+                svg.appendChild(dateBg);
+                const dateText = this.createText(ctx.x + 12, ctx.y + dateH / 2 + 4, item.label, {
+                    fontSize: '13', fill: '#999', anchor: 'start'
+                });
+                svg.appendChild(dateText);
+                const dateIcon = this.createText(ctx.x + ctx.width - 16, ctx.y + dateH / 2 + 4, '📅', {
+                    fontSize: '16', fill: '#666', anchor: 'end'
+                });
+                svg.appendChild(dateIcon);
+                return { height: dateH + 8 };
+
+            case 'time':
+                const timeH = 44;
+                const timeBg = this.createRect(ctx.x, ctx.y, ctx.width, timeH, {
+                    fill: '#FFF', stroke: '#DDD', rx: 6
+                });
+                svg.appendChild(timeBg);
+                const timeText = this.createText(ctx.x + 12, ctx.y + timeH / 2 + 4, item.label, {
+                    fontSize: '13', fill: '#999', anchor: 'start'
+                });
+                svg.appendChild(timeText);
+                const timeIcon = this.createText(ctx.x + ctx.width - 16, ctx.y + timeH / 2 + 4, '🕐', {
+                    fontSize: '16', fill: '#666', anchor: 'end'
+                });
+                svg.appendChild(timeIcon);
+                return { height: timeH + 8 };
+
             default:
                 return { height: 0 };
         }

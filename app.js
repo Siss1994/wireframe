@@ -355,6 +355,90 @@ const EXAMPLES = {
     ],
     wireframe: [
         {
+            name: '컴포넌트 가이드',
+            description: '사용 가능한 모든 컴포넌트 모음',
+            code: `wireframe 컴포넌트 가이드
+    device desktop
+
+    header
+        logo "Component Guide"
+        nav "폼" "데이터" "네비" "기타"
+    end
+
+    section 폼 컴포넌트
+        input text "텍스트 입력"
+        input email "이메일 입력"
+        textarea "여러 줄 입력..."
+        dropdown "선택하세요"
+        checkbox "체크박스 옵션"
+        radio "라디오 옵션 A"
+        radio "라디오 옵션 B" checked
+        toggle "알림 설정" on
+        slider 65 "볼륨"
+        date "날짜 선택"
+        time "시간 선택"
+        file "파일을 드래그하거나 클릭"
+        color "테마 색상"
+        button primary "저장하기"
+        button secondary "취소"
+    end
+
+    section 데이터 표시
+        heading 1 "큰 제목 (H1)"
+        heading 2 "중간 제목 (H2)"
+        paragraph "일반 텍스트 내용입니다."
+        badge "New" green
+        badge "Hot" red
+        tag "태그1" blue
+        tag "태그2" purple
+        progress 75 "다운로드 진행률"
+        rating 4.5
+        stats "총 방문자" "12,345" user
+        alert info "정보 알림 메시지입니다."
+        alert success "성공 알림 메시지입니다."
+        alert warning "경고 알림 메시지입니다."
+        alert error "오류 알림 메시지입니다."
+    end
+
+    section 네비게이션
+        breadcrumb "홈" "카테고리" "상품"
+        tabs "전체" "인기" "최신" active:1
+        stepper 2 "정보입력" "결제" "완료"
+        pagination 1 2 3 ... 10
+    end
+
+    section 컨테이너
+        accordion "자주 묻는 질문 1" "자주 묻는 질문 2"
+        timeline "주문 접수" "배송 준비" "배송 중"
+        carousel "배너 1" "배너 2" "배너 3"
+        quote "좋은 디자인은 눈에 띄지 않는다." "Dieter Rams"
+    end
+
+    section 리스트
+        list bullet "글머리 기호 항목 1" "글머리 기호 항목 2"
+        list number "번호 매기기 항목 1" "번호 매기기 항목 2"
+        list check "체크리스트 항목 1" "체크리스트 항목 2"
+        chips "React" "Vue" "Angular" "Svelte"
+    end
+
+    section 미디어
+        image placeholder
+        video placeholder
+        map placeholder
+        skeleton text 2
+        skeleton avatar 1
+    end
+
+    section 소셜/기타
+        social facebook twitter instagram linkedin github
+        calendar
+    end
+
+    footer
+        text "© 2024 Component Guide"
+    end`
+        },
+        {
             name: '로그인 페이지',
             description: '기본 로그인 화면 와이어프레임',
             code: `wireframe 로그인 페이지
@@ -500,6 +584,88 @@ const EXAMPLES = {
         icon add
         icon heart
         icon user
+    end`
+        },
+        {
+            name: '설정 페이지',
+            description: '앱 설정 화면 예제',
+            code: `wireframe 설정
+    device mobile
+
+    header
+        logo "설정"
+    end
+
+    section 프로필
+        avatar "홍길동"
+        text "hong@email.com"
+        button secondary "프로필 편집"
+    end
+
+    section 알림 설정
+        toggle "푸시 알림" on
+        toggle "이메일 알림"
+        toggle "마케팅 알림"
+    end
+
+    section 앱 설정
+        slider 80 "글자 크기"
+        dropdown "언어 선택"
+        toggle "다크 모드" on
+        color "테마 색상"
+    end
+
+    section 기타
+        list bullet "이용약관" "개인정보 처리방침" "오픈소스 라이선스"
+        spacer 20
+        alert info "버전 2.1.0"
+    end
+
+    footer
+        button secondary "로그아웃"
+    end`
+        },
+        {
+            name: '주문 과정',
+            description: '이커머스 결제 단계 예제',
+            code: `wireframe 주문하기
+    device tablet
+
+    header
+        logo "Shop"
+        breadcrumb "장바구니" "정보입력" "결제"
+    end
+
+    section 진행 단계
+        stepper 2 "장바구니" "정보입력" "결제" "완료"
+    end
+
+    section 배송 정보
+        form "배송지 입력"
+        input text "받는 분"
+        input text "연락처"
+        input text "주소"
+        textarea "배송 메모..."
+        checkbox "기본 배송지로 저장"
+    end
+
+    section 결제 수단
+        tabs "카드" "계좌이체" "간편결제" active:0
+        spacer 10
+        dropdown "카드 선택"
+        input text "카드 번호"
+        date "유효기간"
+        toggle "결제 정보 저장"
+    end
+
+    section 주문 요약
+        card "상품 금액" "₩89,000" ""
+        card "배송비" "무료" ""
+        card "총 결제액" "₩89,000" ""
+    end
+
+    footer
+        button primary "결제하기"
     end`
         }
     ]
@@ -658,39 +824,86 @@ A --> B   %% 연관</code></pre>
     </div>`,
 
     wireframe: `<div class="help-section">
-        <h4>기본 구조</h4>
+        <h4>📱 기본 구조</h4>
         <pre><code>wireframe 페이지명
     device mobile|tablet|desktop
 
     header ... end
+    sidebar ... end
     section 섹션명 ... end
     footer ... end</code></pre>
     </div>
     <div class="help-section">
-        <h4>UI 컴포넌트</h4>
-        <pre><code>text "텍스트"
-input type "placeholder"
+        <h4>📝 폼 컴포넌트</h4>
+        <pre><code>input type "placeholder"
+textarea "placeholder"
 button primary|secondary "라벨"
 checkbox "라벨"
+radio "라벨" [checked]
+toggle "라벨" [on]
 dropdown "라벨"
-link "텍스트"
-divider</code></pre>
+slider 50 "라벨"
+date "날짜 선택"
+time "시간 선택"
+file "파일 업로드"
+color "색상 선택"</code></pre>
     </div>
     <div class="help-section">
-        <h4>레이아웃</h4>
-        <pre><code>header ... end
-sidebar ... end
-section 이름 ... end
-footer ... end
+        <h4>📊 데이터 표시</h4>
+        <pre><code>text "텍스트"
+heading 1|2|3 "제목"
+paragraph "긴 텍스트"
 card "제목" "값" "변화"
-table "컬럼1" "컬럼2"</code></pre>
+stats "라벨" "값" [아이콘]
+table "컬럼1" "컬럼2"
+chart bar|line|pie "제목"
+progress 75 "라벨"
+rating 4.5
+badge "텍스트" [색상]
+tag "태그" [색상]</code></pre>
     </div>
     <div class="help-section">
-        <h4>아이콘/이미지</h4>
-        <pre><code>icon name
-avatar "이름"
-image placeholder
-logo "텍스트"</code></pre>
+        <h4>🧭 내비게이션</h4>
+        <pre><code>tabs "탭1" "탭2" active:0
+breadcrumb "홈" "카테고리" "상품"
+stepper 2 "단계1" "단계2" "단계3"
+pagination 1 2 3 ... 10
+menu "메뉴" [active]
+link "링크"</code></pre>
+    </div>
+    <div class="help-section">
+        <h4>📦 컨테이너</h4>
+        <pre><code>modal "제목"
+form "폼 제목"
+accordion "제목1" "제목2"
+carousel "슬라이드1" "슬라이드2"
+timeline "이벤트1" "이벤트2"</code></pre>
+    </div>
+    <div class="help-section">
+        <h4>🎨 미디어/시각</h4>
+        <pre><code>image placeholder
+video placeholder
+map placeholder
+avatar "이름" [add]
+icon home|search|user|cart|...
+logo "텍스트"
+skeleton text|card|image|avatar
+calendar</code></pre>
+    </div>
+    <div class="help-section">
+        <h4>💬 피드백</h4>
+        <pre><code>alert info|success|warning|error "메시지"
+tooltip "도움말"
+quote "인용문" "저자"
+divider ["텍스트"]</code></pre>
+    </div>
+    <div class="help-section">
+        <h4>🔧 기타</h4>
+        <pre><code>list bullet|number|check "항목1" "항목2"
+chips "칩1" "칩2" "칩3"
+social facebook twitter instagram
+search "검색..."
+spacer [크기]</code></pre>
     </div>`
 };
 

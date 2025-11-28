@@ -980,6 +980,219 @@ class DiagramParser {
             return { type: 'pagination', pages };
         }
 
+        // radio "label" [checked]
+        match = line.match(/^radio\s+"([^"]+)"(?:\s+(checked))?$/i);
+        if (match) {
+            return { type: 'radio', label: match[1], checked: !!match[2] };
+        }
+
+        // toggle "label" [on]
+        match = line.match(/^toggle\s+"([^"]+)"(?:\s+(on))?$/i);
+        if (match) {
+            return { type: 'toggle', label: match[1], on: !!match[2] };
+        }
+
+        // badge "text" [color]
+        match = line.match(/^badge\s+"([^"]+)"(?:\s+(red|green|blue|yellow|gray))?$/i);
+        if (match) {
+            return { type: 'badge', text: match[1], color: match[2] || 'blue' };
+        }
+
+        // tabs "tab1" "tab2" active:index
+        match = line.match(/^tabs\s+(.+?)(?:\s+active:(\d+))?$/i);
+        if (match) {
+            const items = match[1].match(/"([^"]+)"/g)?.map(s => s.replace(/"/g, '')) || [];
+            return { type: 'tabs', items, activeIndex: match[2] ? parseInt(match[2]) : 0 };
+        }
+
+        // breadcrumb "Home" "Category" "Item"
+        match = line.match(/^breadcrumb\s+(.+)$/i);
+        if (match) {
+            const items = match[1].match(/"([^"]+)"/g)?.map(s => s.replace(/"/g, '')) || [];
+            return { type: 'breadcrumb', items };
+        }
+
+        // progress value "label"
+        match = line.match(/^progress\s+(\d+)(?:\s+"([^"]+)")?$/i);
+        if (match) {
+            return { type: 'progress', value: parseInt(match[1]), label: match[2] || null };
+        }
+
+        // rating value
+        match = line.match(/^rating\s+(\d+(?:\.\d+)?)$/i);
+        if (match) {
+            return { type: 'rating', value: parseFloat(match[1]) };
+        }
+
+        // stepper active "Step1" "Step2" "Step3"
+        match = line.match(/^stepper\s+(\d+)\s+(.+)$/i);
+        if (match) {
+            const steps = match[2].match(/"([^"]+)"/g)?.map(s => s.replace(/"/g, '')) || [];
+            return { type: 'stepper', active: parseInt(match[1]), steps };
+        }
+
+        // list bullet|number "item1" "item2"
+        match = line.match(/^list\s+(bullet|number|check)\s+(.+)$/i);
+        if (match) {
+            const items = match[2].match(/"([^"]+)"/g)?.map(s => s.replace(/"/g, '')) || [];
+            return { type: 'list', listType: match[1], items };
+        }
+
+        // alert type "message"
+        match = line.match(/^alert\s+(info|success|warning|error)\s+"([^"]+)"$/i);
+        if (match) {
+            return { type: 'alert', alertType: match[1], message: match[2] };
+        }
+
+        // tag "text" [color]
+        match = line.match(/^tag\s+"([^"]+)"(?:\s+(red|green|blue|yellow|gray|purple))?$/i);
+        if (match) {
+            return { type: 'tag', text: match[1], color: match[2] || 'gray' };
+        }
+
+        // slider value "label"
+        match = line.match(/^slider\s+(\d+)(?:\s+"([^"]+)")?$/i);
+        if (match) {
+            return { type: 'slider', value: parseInt(match[1]), label: match[2] || null };
+        }
+
+        // spacer [size]
+        match = line.match(/^spacer(?:\s+(\d+))?$/i);
+        if (match) {
+            return { type: 'spacer', size: match[1] ? parseInt(match[1]) : 20 };
+        }
+
+        // heading level "text"
+        match = line.match(/^heading\s+(\d)\s+"([^"]+)"$/i);
+        if (match) {
+            return { type: 'heading', level: parseInt(match[1]), text: match[2] };
+        }
+
+        // paragraph "text"
+        match = line.match(/^paragraph\s+"([^"]+)"$/i);
+        if (match) {
+            return { type: 'paragraph', text: match[1] };
+        }
+
+        // quote "text" "author"
+        match = line.match(/^quote\s+"([^"]+)"(?:\s+"([^"]+)")?$/i);
+        if (match) {
+            return { type: 'quote', text: match[1], author: match[2] || null };
+        }
+
+        // video placeholder
+        match = line.match(/^video\s+(placeholder)$/i);
+        if (match) {
+            return { type: 'video', placeholder: true };
+        }
+
+        // map placeholder
+        match = line.match(/^map\s+(placeholder)$/i);
+        if (match) {
+            return { type: 'map', placeholder: true };
+        }
+
+        // carousel "item1" "item2"
+        match = line.match(/^carousel\s+(.+)$/i);
+        if (match) {
+            const items = match[1].match(/"([^"]+)"/g)?.map(s => s.replace(/"/g, '')) || [];
+            return { type: 'carousel', items };
+        }
+
+        // timeline "event1" "event2"
+        match = line.match(/^timeline\s+(.+)$/i);
+        if (match) {
+            const events = match[1].match(/"([^"]+)"/g)?.map(s => s.replace(/"/g, '')) || [];
+            return { type: 'timeline', events };
+        }
+
+        // skeleton lines
+        match = line.match(/^skeleton\s+(text|card|image|avatar)(?:\s+(\d+))?$/i);
+        if (match) {
+            return { type: 'skeleton', skeletonType: match[1], count: match[2] ? parseInt(match[2]) : 1 };
+        }
+
+        // accordion "title1" "title2"
+        match = line.match(/^accordion\s+(.+)$/i);
+        if (match) {
+            const items = match[1].match(/"([^"]+)"/g)?.map(s => s.replace(/"/g, '')) || [];
+            return { type: 'accordion', items };
+        }
+
+        // chip "text1" "text2"
+        match = line.match(/^chips?\s+(.+)$/i);
+        if (match) {
+            const items = match[1].match(/"([^"]+)"/g)?.map(s => s.replace(/"/g, '')) || [];
+            return { type: 'chip', items };
+        }
+
+        // tooltip "text"
+        match = line.match(/^tooltip\s+"([^"]+)"$/i);
+        if (match) {
+            return { type: 'tooltip', text: match[1] };
+        }
+
+        // modal "title"
+        match = line.match(/^modal\s+"([^"]+)"$/i);
+        if (match) {
+            return { type: 'modal', title: match[1] };
+        }
+
+        // form "title"
+        match = line.match(/^form\s+"([^"]+)"$/i);
+        if (match) {
+            return { type: 'form', title: match[1] };
+        }
+
+        // stats "label" "value" [icon]
+        match = line.match(/^stats\s+"([^"]+)"\s+"([^"]+)"(?:\s+(\w+))?$/i);
+        if (match) {
+            return { type: 'stats', label: match[1], value: match[2], icon: match[3] || null };
+        }
+
+        // social icons
+        match = line.match(/^social\s+(.+)$/i);
+        if (match) {
+            const networks = match[1].split(/\s+/);
+            return { type: 'social', networks };
+        }
+
+        // calendar placeholder
+        match = line.match(/^calendar(?:\s+(placeholder))?$/i);
+        if (match) {
+            return { type: 'calendar', placeholder: true };
+        }
+
+        // textarea "placeholder"
+        match = line.match(/^textarea\s+"([^"]+)"$/i);
+        if (match) {
+            return { type: 'textarea', placeholder: match[1] };
+        }
+
+        // file "label"
+        match = line.match(/^file\s+"([^"]+)"$/i);
+        if (match) {
+            return { type: 'file', label: match[1] };
+        }
+
+        // color "label"
+        match = line.match(/^color\s+"([^"]+)"$/i);
+        if (match) {
+            return { type: 'color', label: match[1] };
+        }
+
+        // date "label"
+        match = line.match(/^date\s+"([^"]+)"$/i);
+        if (match) {
+            return { type: 'date', label: match[1] };
+        }
+
+        // time "label"
+        match = line.match(/^time\s+"([^"]+)"$/i);
+        if (match) {
+            return { type: 'time', label: match[1] };
+        }
+
         return null;
     }
 
