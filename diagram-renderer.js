@@ -61,6 +61,13 @@ class DiagramRenderer {
                 stepWidth: 120,
                 stepHeight: 80,
                 padding: 40
+            },
+            wireframe: {
+                mobile: { width: 375, height: 667 },
+                tablet: { width: 768, height: 1024 },
+                desktop: { width: 1200, height: 800 },
+                padding: 20,
+                componentSpacing: 12
             }
         };
     }
@@ -87,6 +94,8 @@ class DiagramRenderer {
                 return this.renderGantt(data);
             case 'journey':
                 return this.renderJourney(data);
+            case 'wireframe':
+                return this.renderWireframe(data);
             default:
                 this.showError('알 수 없는 다이어그램 타입입니다.');
         }
@@ -1797,6 +1806,725 @@ class DiagramRenderer {
 
         this.container.appendChild(svg);
         return svg;
+    }
+
+    // ===== Wireframe Renderer =====
+    renderWireframe(data) {
+        const cfg = this.config.wireframe;
+        const deviceSize = cfg[data.device] || cfg.mobile;
+
+        const width = deviceSize.width;
+        const height = deviceSize.height;
+
+        const svg = this.createSvg(width, height);
+
+        // 배경 (디바이스 프레임)
+        const frame = this.createRect(0, 0, width, height, {
+            fill: '#FFFFFF',
+            stroke: '#E0E0E0',
+            strokeWidth: 2,
+            rx: data.device === 'mobile' ? 20 : 8
+        });
+        svg.appendChild(frame);
+
+        // 현재 Y 위치 추적
+        let currentY = 0;
+        let sidebarWidth = 0;
+        let hasSidebar = false;
+
+        // sidebar가 있는지 확인
+        data.elements.forEach(el => {
+            if (el.type === 'sidebar') {
+                hasSidebar = true;
+                sidebarWidth = data.device === 'desktop' ? 220 : 200;
+            }
+        });
+
+        const contentStartX = hasSidebar ? sidebarWidth : 0;
+        const contentWidth = width - contentStartX;
+
+        // 요소 렌더링
+        data.elements.forEach(element => {
+            const result = this.renderWireframeElement(svg, element, {
+                x: contentStartX,
+                y: currentY,
+                width: contentWidth,
+                height,
+                device: data.device,
+                cfg,
+                sidebarWidth,
+                fullWidth: width
+            });
+            if (result && result.height) {
+                currentY += result.height;
+            }
+        });
+
+        this.container.appendChild(svg);
+        return svg;
+    }
+
+    renderWireframeElement(svg, element, ctx) {
+        switch (element.type) {
+            case 'statusbar':
+                return this.renderWfStatusbar(svg, ctx);
+            case 'header':
+                return this.renderWfHeader(svg, element, ctx);
+            case 'footer':
+                return this.renderWfFooter(svg, element, ctx);
+            case 'sidebar':
+                return this.renderWfSidebar(svg, element, ctx);
+            case 'section':
+                return this.renderWfSection(svg, element, ctx);
+            case 'bottomnav':
+                return this.renderWfBottomNav(svg, element, ctx);
+            case 'post':
+                return this.renderWfPost(svg, element, ctx);
+            default:
+                return this.renderWfComponent(svg, element, ctx);
+        }
+    }
+
+    renderWfStatusbar(svg, ctx) {
+        const h = 24;
+        const y = ctx.y;
+
+        // 배경
+        const bg = this.createRect(0, y, ctx.fullWidth, h, {
+            fill: '#F5F5F5', stroke: 'none'
+        });
+        svg.appendChild(bg);
+
+        // 시간
+        const time = this.createText(ctx.fullWidth / 2, y + 16, '9:41', {
+            fontSize: '12', fontWeight: 'bold', fill: '#000'
+        });
+        svg.appendChild(time);
+
+        // 배터리 아이콘 (간단한 사각형)
+        const battery = this.createRect(ctx.fullWidth - 35, y + 7, 22, 10, {
+            fill: 'none', stroke: '#000', strokeWidth: 1, rx: 2
+        });
+        svg.appendChild(battery);
+        const batteryFill = this.createRect(ctx.fullWidth - 33, y + 9, 16, 6, {
+            fill: '#000', stroke: 'none', rx: 1
+        });
+        svg.appendChild(batteryFill);
+
+        ctx.y += h;
+        return { height: h };
+    }
+
+    renderWfHeader(svg, element, ctx) {
+        const h = ctx.device === 'mobile' ? 56 : 64;
+        const y = ctx.y;
+
+        // 배경
+        const bg = this.createRect(0, y, ctx.fullWidth, h, {
+            fill: '#FAFAFA', stroke: 'none'
+        });
+        svg.appendChild(bg);
+
+        // 하단 라인
+        const line = this.createLine(0, y + h, ctx.fullWidth, y + h, {
+            stroke: '#E0E0E0', strokeWidth: 1
+        });
+        svg.appendChild(line);
+
+        let itemX = ctx.cfg.padding;
+        const itemY = y + h / 2;
+
+        // 헤더 아이템 렌더링
+        element.items.forEach(item => {
+            switch (item.type) {
+                case 'logo':
+                    const logo = this.createText(itemX + 10, itemY + 5, item.text, {
+                        fontSize: '18', fontWeight: 'bold', fill: '#333', anchor: 'start'
+                    });
+                    svg.appendChild(logo);
+                    itemX += item.text.length * 12 + 20;
+                    break;
+                case 'nav':
+                    if (ctx.device !== 'mobile') {
+                        item.items.forEach((navItem, idx) => {
+                            const navText = this.createText(itemX + 10, itemY + 5, navItem, {
+                                fontSize: '13', fill: '#666', anchor: 'start'
+                            });
+                            svg.appendChild(navText);
+                            itemX += navItem.length * 8 + 25;
+                        });
+                    }
+                    break;
+                case 'search':
+                    const searchWidth = ctx.device === 'mobile' ? 150 : 200;
+                    const searchBox = this.createRect(ctx.fullWidth - searchWidth - ctx.cfg.padding - 50, itemY - 15, searchWidth, 30, {
+                        fill: '#FFF', stroke: '#DDD', rx: 4
+                    });
+                    svg.appendChild(searchBox);
+                    const searchText = this.createText(ctx.fullWidth - searchWidth - ctx.cfg.padding - 35, itemY + 4, item.placeholder, {
+                        fontSize: '12', fill: '#999', anchor: 'start'
+                    });
+                    svg.appendChild(searchText);
+                    break;
+                case 'icon':
+                    const iconX = ctx.fullWidth - ctx.cfg.padding - 20;
+                    this.renderWfIcon(svg, item.name, iconX, itemY - 10, 20);
+                    break;
+                case 'avatar':
+                    const avatarX = ctx.fullWidth - ctx.cfg.padding - 20;
+                    const avatarCircle = this.createCircle(avatarX, itemY, 16, {
+                        fill: '#E0E0E0', stroke: '#CCC'
+                    });
+                    svg.appendChild(avatarCircle);
+                    break;
+            }
+        });
+
+        ctx.y += h;
+        return { height: h };
+    }
+
+    renderWfFooter(svg, element, ctx) {
+        const h = 60;
+        const y = ctx.height - h;
+
+        // 배경
+        const bg = this.createRect(0, y, ctx.fullWidth, h, {
+            fill: '#FAFAFA', stroke: 'none'
+        });
+        svg.appendChild(bg);
+
+        // 상단 라인
+        const line = this.createLine(0, y, ctx.fullWidth, y, {
+            stroke: '#E0E0E0', strokeWidth: 1
+        });
+        svg.appendChild(line);
+
+        // 아이템 렌더링 (중앙 정렬)
+        const totalItems = element.items.length;
+        const spacing = ctx.fullWidth / (totalItems + 1);
+
+        element.items.forEach((item, idx) => {
+            const itemX = spacing * (idx + 1);
+            const itemY = y + h / 2;
+
+            if (item.type === 'link') {
+                const linkText = this.createText(itemX, itemY + 4, item.text, {
+                    fontSize: '12', fill: '#666'
+                });
+                svg.appendChild(linkText);
+            } else if (item.type === 'text') {
+                const text = this.createText(itemX, itemY + 4, item.content, {
+                    fontSize: '11', fill: '#999'
+                });
+                svg.appendChild(text);
+            }
+        });
+
+        return { height: 0 }; // footer는 하단에 고정
+    }
+
+    renderWfSidebar(svg, element, ctx) {
+        const sidebarW = ctx.sidebarWidth;
+        const sidebarH = ctx.height;
+
+        // 배경
+        const bg = this.createRect(0, 0, sidebarW, sidebarH, {
+            fill: '#2C3E50', stroke: 'none'
+        });
+        svg.appendChild(bg);
+
+        let itemY = 80;
+
+        element.items.forEach(item => {
+            if (item.type === 'menu') {
+                const itemBg = this.createRect(0, itemY - 15, sidebarW, 40, {
+                    fill: item.active ? 'rgba(255,255,255,0.1)' : 'transparent', stroke: 'none'
+                });
+                svg.appendChild(itemBg);
+
+                const menuText = this.createText(20, itemY + 5, item.label, {
+                    fontSize: '13', fill: item.active ? '#FFF' : '#AAA', anchor: 'start'
+                });
+                svg.appendChild(menuText);
+
+                if (item.active) {
+                    const indicator = this.createRect(0, itemY - 15, 4, 40, {
+                        fill: '#3498DB', stroke: 'none'
+                    });
+                    svg.appendChild(indicator);
+                }
+
+                itemY += 45;
+            } else if (item.type === 'divider') {
+                const divLine = this.createLine(20, itemY, sidebarW - 20, itemY, {
+                    stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1
+                });
+                svg.appendChild(divLine);
+                itemY += 20;
+            }
+        });
+
+        return { height: 0 };
+    }
+
+    renderWfSection(svg, element, ctx) {
+        const padding = ctx.cfg.padding;
+        const startY = ctx.y + padding;
+        let currentY = startY;
+
+        // 섹션 제목
+        const title = this.createText(ctx.x + padding, currentY + 16, element.title, {
+            fontSize: '16', fontWeight: 'bold', fill: '#333', anchor: 'start'
+        });
+        svg.appendChild(title);
+        currentY += 35;
+
+        // 섹션 아이템 렌더링
+        element.items.forEach(item => {
+            const result = this.renderWfSectionItem(svg, item, {
+                ...ctx,
+                x: ctx.x + padding,
+                y: currentY,
+                width: ctx.width - padding * 2
+            });
+            currentY += result.height + ctx.cfg.componentSpacing;
+        });
+
+        return { height: currentY - ctx.y + padding };
+    }
+
+    renderWfSectionItem(svg, item, ctx) {
+        switch (item.type) {
+            case 'text':
+                const text = this.createText(ctx.x, ctx.y + 14, item.content, {
+                    fontSize: '14', fill: '#333', anchor: 'start'
+                });
+                svg.appendChild(text);
+                return { height: 24 };
+
+            case 'input':
+                const inputH = 44;
+                const inputBg = this.createRect(ctx.x, ctx.y, ctx.width, inputH, {
+                    fill: '#FFF', stroke: '#DDD', rx: 6
+                });
+                svg.appendChild(inputBg);
+                const inputText = this.createText(ctx.x + 12, ctx.y + inputH / 2 + 4, item.placeholder, {
+                    fontSize: '13', fill: '#999', anchor: 'start'
+                });
+                svg.appendChild(inputText);
+                return { height: inputH };
+
+            case 'button':
+                const btnH = 44;
+                const btnBg = this.createRect(ctx.x, ctx.y, ctx.width, btnH, {
+                    fill: item.variant === 'primary' ? '#3498DB' : '#F5F5F5',
+                    stroke: item.variant === 'primary' ? 'none' : '#DDD',
+                    rx: 6
+                });
+                svg.appendChild(btnBg);
+                const btnText = this.createText(ctx.x + ctx.width / 2, ctx.y + btnH / 2 + 5, item.label, {
+                    fontSize: '14', fontWeight: '600', fill: item.variant === 'primary' ? '#FFF' : '#333'
+                });
+                svg.appendChild(btnText);
+                return { height: btnH };
+
+            case 'checkbox':
+                const cbSize = 20;
+                const cbBox = this.createRect(ctx.x, ctx.y + 2, cbSize, cbSize, {
+                    fill: '#FFF', stroke: '#DDD', rx: 4
+                });
+                svg.appendChild(cbBox);
+                const cbLabel = this.createText(ctx.x + cbSize + 10, ctx.y + 16, item.label, {
+                    fontSize: '13', fill: '#333', anchor: 'start'
+                });
+                svg.appendChild(cbLabel);
+                return { height: 28 };
+
+            case 'link':
+                const linkText = this.createText(ctx.x + ctx.width / 2, ctx.y + 14, item.text, {
+                    fontSize: '13', fill: '#3498DB'
+                });
+                svg.appendChild(linkText);
+                return { height: 24 };
+
+            case 'divider':
+                if (item.text) {
+                    const divLine1 = this.createLine(ctx.x, ctx.y + 12, ctx.x + ctx.width / 2 - 30, ctx.y + 12, {
+                        stroke: '#E0E0E0', strokeWidth: 1
+                    });
+                    svg.appendChild(divLine1);
+                    const divText = this.createText(ctx.x + ctx.width / 2, ctx.y + 16, item.text, {
+                        fontSize: '12', fill: '#999'
+                    });
+                    svg.appendChild(divText);
+                    const divLine2 = this.createLine(ctx.x + ctx.width / 2 + 30, ctx.y + 12, ctx.x + ctx.width, ctx.y + 12, {
+                        stroke: '#E0E0E0', strokeWidth: 1
+                    });
+                    svg.appendChild(divLine2);
+                } else {
+                    const divLine = this.createLine(ctx.x, ctx.y + 12, ctx.x + ctx.width, ctx.y + 12, {
+                        stroke: '#E0E0E0', strokeWidth: 1
+                    });
+                    svg.appendChild(divLine);
+                }
+                return { height: 24 };
+
+            case 'dropdown':
+                const ddH = 44;
+                const ddBg = this.createRect(ctx.x, ctx.y, ctx.width, ddH, {
+                    fill: '#FFF', stroke: '#DDD', rx: 6
+                });
+                svg.appendChild(ddBg);
+                const ddText = this.createText(ctx.x + 12, ctx.y + ddH / 2 + 4, item.label, {
+                    fontSize: '13', fill: '#333', anchor: 'start'
+                });
+                svg.appendChild(ddText);
+                // 드롭다운 화살표
+                const arrowPath = this.createPath(`M ${ctx.x + ctx.width - 20} ${ctx.y + ddH / 2 - 3} l 6 6 l 6 -6`, {
+                    stroke: '#666', strokeWidth: 2, fill: 'none'
+                });
+                svg.appendChild(arrowPath);
+                return { height: ddH };
+
+            case 'card':
+                const cardH = 80;
+                const cardBg = this.createRect(ctx.x, ctx.y, ctx.width / 2 - 8, cardH, {
+                    fill: '#FFF', stroke: '#E0E0E0', rx: 8
+                });
+                svg.appendChild(cardBg);
+                const cardTitle = this.createText(ctx.x + 12, ctx.y + 25, item.title, {
+                    fontSize: '11', fill: '#666', anchor: 'start'
+                });
+                svg.appendChild(cardTitle);
+                const cardValue = this.createText(ctx.x + 12, ctx.y + 50, item.value, {
+                    fontSize: '18', fontWeight: 'bold', fill: '#333', anchor: 'start'
+                });
+                svg.appendChild(cardValue);
+                if (item.change) {
+                    const isPositive = item.change.startsWith('+');
+                    const changeText = this.createText(ctx.x + 12, ctx.y + 68, item.change, {
+                        fontSize: '11', fill: isPositive ? '#2ECC71' : '#E74C3C', anchor: 'start'
+                    });
+                    svg.appendChild(changeText);
+                }
+                return { height: cardH };
+
+            case 'chart':
+                const chartH = 150;
+                const chartBg = this.createRect(ctx.x, ctx.y, ctx.width, chartH, {
+                    fill: '#FAFAFA', stroke: '#E0E0E0', rx: 8
+                });
+                svg.appendChild(chartBg);
+                const chartTitle = this.createText(ctx.x + ctx.width / 2, ctx.y + 20, item.title, {
+                    fontSize: '12', fill: '#666'
+                });
+                svg.appendChild(chartTitle);
+                // 차트 placeholder
+                if (item.chartType === 'bar') {
+                    for (let i = 0; i < 5; i++) {
+                        const barH = 30 + Math.random() * 60;
+                        const bar = this.createRect(ctx.x + 30 + i * 40, ctx.y + chartH - 30 - barH, 25, barH, {
+                            fill: '#3498DB', stroke: 'none', rx: 2
+                        });
+                        svg.appendChild(bar);
+                    }
+                } else if (item.chartType === 'line') {
+                    const points = [];
+                    for (let i = 0; i < 6; i++) {
+                        points.push(`${ctx.x + 30 + i * 35},${ctx.y + 60 + Math.random() * 50}`);
+                    }
+                    const linePath = this.createPath(`M ${points.join(' L ')}`, {
+                        stroke: '#3498DB', strokeWidth: 2, fill: 'none'
+                    });
+                    svg.appendChild(linePath);
+                }
+                return { height: chartH };
+
+            case 'table':
+                const tableH = 120;
+                const tableBg = this.createRect(ctx.x, ctx.y, ctx.width, tableH, {
+                    fill: '#FFF', stroke: '#E0E0E0', rx: 4
+                });
+                svg.appendChild(tableBg);
+                // 헤더
+                const headerBg = this.createRect(ctx.x, ctx.y, ctx.width, 35, {
+                    fill: '#F5F5F5', stroke: 'none', rx: 4
+                });
+                svg.appendChild(headerBg);
+                const colWidth = ctx.width / item.columns.length;
+                item.columns.forEach((col, idx) => {
+                    const colText = this.createText(ctx.x + colWidth * idx + colWidth / 2, ctx.y + 22, col, {
+                        fontSize: '12', fontWeight: 'bold', fill: '#333'
+                    });
+                    svg.appendChild(colText);
+                });
+                // 행 라인
+                for (let i = 1; i <= 2; i++) {
+                    const rowLine = this.createLine(ctx.x, ctx.y + 35 + i * 28, ctx.x + ctx.width, ctx.y + 35 + i * 28, {
+                        stroke: '#E0E0E0', strokeWidth: 1
+                    });
+                    svg.appendChild(rowLine);
+                    // placeholder 데이터
+                    item.columns.forEach((col, idx) => {
+                        const dataRect = this.createRect(ctx.x + colWidth * idx + 10, ctx.y + 35 + (i - 1) * 28 + 8, colWidth - 20, 12, {
+                            fill: '#EEE', stroke: 'none', rx: 2
+                        });
+                        svg.appendChild(dataRect);
+                    });
+                }
+                return { height: tableH };
+
+            case 'product':
+                const prodW = (ctx.width - 16) / 2;
+                const prodH = 180;
+                const prodBg = this.createRect(ctx.x, ctx.y, prodW, prodH, {
+                    fill: '#FFF', stroke: '#E0E0E0', rx: 8
+                });
+                svg.appendChild(prodBg);
+                // 이미지 placeholder
+                const imgBg = this.createRect(ctx.x + 8, ctx.y + 8, prodW - 16, 100, {
+                    fill: '#F0F0F0', stroke: 'none', rx: 4
+                });
+                svg.appendChild(imgBg);
+                // 상품명
+                const prodName = this.createText(ctx.x + prodW / 2, ctx.y + 130, item.name, {
+                    fontSize: '12', fill: '#333'
+                });
+                svg.appendChild(prodName);
+                // 가격
+                const prodPrice = this.createText(ctx.x + prodW / 2, ctx.y + 150, item.price, {
+                    fontSize: '14', fontWeight: 'bold', fill: '#E74C3C'
+                });
+                svg.appendChild(prodPrice);
+                // 별점
+                if (item.rating) {
+                    const starText = this.createText(ctx.x + prodW / 2, ctx.y + 168, '★ ' + item.rating, {
+                        fontSize: '11', fill: '#F39C12'
+                    });
+                    svg.appendChild(starText);
+                }
+                return { height: prodH };
+
+            case 'avatar':
+                const avatarCircle = this.createCircle(ctx.x + 25, ctx.y + 25, 22, {
+                    fill: '#E0E0E0', stroke: item.add ? '#3498DB' : '#CCC', strokeWidth: item.add ? 2 : 1
+                });
+                svg.appendChild(avatarCircle);
+                if (item.add) {
+                    const plusLine1 = this.createLine(ctx.x + 25 - 8, ctx.y + 25, ctx.x + 25 + 8, ctx.y + 25, {
+                        stroke: '#3498DB', strokeWidth: 2
+                    });
+                    svg.appendChild(plusLine1);
+                    const plusLine2 = this.createLine(ctx.x + 25, ctx.y + 25 - 8, ctx.x + 25, ctx.y + 25 + 8, {
+                        stroke: '#3498DB', strokeWidth: 2
+                    });
+                    svg.appendChild(plusLine2);
+                }
+                const avatarName = this.createText(ctx.x + 25, ctx.y + 58, item.name.substring(0, 6), {
+                    fontSize: '10', fill: '#666'
+                });
+                svg.appendChild(avatarName);
+                return { height: 65 };
+
+            case 'image':
+                const imgH = 200;
+                const placeholderBg = this.createRect(ctx.x, ctx.y, ctx.width, imgH, {
+                    fill: '#F0F0F0', stroke: '#E0E0E0', rx: 0
+                });
+                svg.appendChild(placeholderBg);
+                // 이미지 아이콘
+                const imgIcon = this.createPath(`M ${ctx.x + ctx.width / 2 - 20} ${ctx.y + imgH / 2 - 10} l 10 15 l 10 -8 l 15 20 h -50 z`, {
+                    fill: '#CCC', stroke: 'none'
+                });
+                svg.appendChild(imgIcon);
+                return { height: imgH };
+
+            case 'icons':
+                const iconsY = ctx.y + 10;
+                const iconSpacing = ctx.width / (item.names.length + 1);
+                item.names.forEach((name, idx) => {
+                    this.renderWfIcon(svg, name, ctx.x + iconSpacing * (idx + 1) - 12, iconsY, 24);
+                });
+                return { height: 44 };
+
+            case 'post':
+                return this.renderWfPost(svg, item, ctx);
+
+            default:
+                return { height: 0 };
+        }
+    }
+
+    renderWfBottomNav(svg, element, ctx) {
+        const h = 56;
+        const y = ctx.height - h;
+
+        // 배경
+        const bg = this.createRect(0, y, ctx.fullWidth, h, {
+            fill: '#FFF', stroke: 'none'
+        });
+        svg.appendChild(bg);
+
+        // 상단 라인
+        const line = this.createLine(0, y, ctx.fullWidth, y, {
+            stroke: '#E0E0E0', strokeWidth: 1
+        });
+        svg.appendChild(line);
+
+        const itemCount = element.items.length;
+        const spacing = ctx.fullWidth / itemCount;
+
+        element.items.forEach((item, idx) => {
+            const itemX = spacing * idx + spacing / 2;
+            const itemY = y + h / 2;
+
+            if (item.type === 'icon') {
+                this.renderWfIcon(svg, item.name, itemX - 12, itemY - 12, 24, item.active ? '#3498DB' : '#999');
+            }
+        });
+
+        return { height: 0 };
+    }
+
+    renderWfPost(svg, element, ctx) {
+        let currentY = ctx.y;
+        const padding = 12;
+
+        element.items.forEach(item => {
+            if (item.type === 'avatar') {
+                const avatarCircle = this.createCircle(ctx.x + padding + 18, currentY + 18, 18, {
+                    fill: '#E0E0E0', stroke: '#CCC'
+                });
+                svg.appendChild(avatarCircle);
+                const userName = this.createText(ctx.x + padding + 50, currentY + 22, item.name, {
+                    fontSize: '13', fontWeight: 'bold', fill: '#333', anchor: 'start'
+                });
+                svg.appendChild(userName);
+                currentY += 50;
+            } else if (item.type === 'image') {
+                const imgH = 250;
+                const imgBg = this.createRect(ctx.x, currentY, ctx.width, imgH, {
+                    fill: '#F0F0F0', stroke: 'none'
+                });
+                svg.appendChild(imgBg);
+                currentY += imgH;
+            } else if (item.type === 'icons') {
+                const iconsY = currentY + 12;
+                let iconX = ctx.x + padding;
+                item.names.forEach(name => {
+                    this.renderWfIcon(svg, name, iconX, iconsY, 22);
+                    iconX += 40;
+                });
+                currentY += 45;
+            } else if (item.type === 'text') {
+                const text = this.createText(ctx.x + padding, currentY + 14, item.content, {
+                    fontSize: '13', fill: '#333', anchor: 'start'
+                });
+                svg.appendChild(text);
+                currentY += 24;
+            }
+        });
+
+        return { height: currentY - ctx.y + padding };
+    }
+
+    renderWfIcon(svg, name, x, y, size, color = '#666') {
+        // 간단한 아이콘 렌더링 (실제 아이콘 대신 placeholder)
+        const iconBg = this.createRect(x, y, size, size, {
+            fill: 'none', stroke: 'none'
+        });
+        svg.appendChild(iconBg);
+
+        // 아이콘별 심플 SVG
+        switch (name.toLowerCase()) {
+            case 'home':
+                const homePath = this.createPath(`M ${x + size / 2} ${y + 4} L ${x + 4} ${y + size / 2} L ${x + 4} ${y + size - 4} L ${x + size - 4} ${y + size - 4} L ${x + size - 4} ${y + size / 2} Z`, {
+                    fill: color, stroke: 'none'
+                });
+                svg.appendChild(homePath);
+                break;
+            case 'search':
+                const searchCircle = this.createCircle(x + size / 2 - 2, y + size / 2 - 2, size / 3, {
+                    fill: 'none', stroke: color, strokeWidth: 2
+                });
+                svg.appendChild(searchCircle);
+                const searchLine = this.createLine(x + size / 2 + 3, y + size / 2 + 3, x + size - 4, y + size - 4, {
+                    stroke: color, strokeWidth: 2
+                });
+                svg.appendChild(searchLine);
+                break;
+            case 'heart':
+                const heartPath = this.createPath(`M ${x + size / 2} ${y + size - 5} C ${x + 2} ${y + size / 2} ${x + 2} ${y + 5} ${x + size / 2} ${y + size / 3} C ${x + size - 2} ${y + 5} ${x + size - 2} ${y + size / 2} ${x + size / 2} ${y + size - 5}`, {
+                    fill: 'none', stroke: color, strokeWidth: 1.5
+                });
+                svg.appendChild(heartPath);
+                break;
+            case 'user':
+                const userHead = this.createCircle(x + size / 2, y + size / 3, size / 4, {
+                    fill: 'none', stroke: color, strokeWidth: 1.5
+                });
+                svg.appendChild(userHead);
+                const userBody = this.createPath(`M ${x + 4} ${y + size - 3} Q ${x + size / 2} ${y + size / 2} ${x + size - 4} ${y + size - 3}`, {
+                    fill: 'none', stroke: color, strokeWidth: 1.5
+                });
+                svg.appendChild(userBody);
+                break;
+            case 'cart':
+                const cartBody = this.createPath(`M ${x + 4} ${y + 6} L ${x + 8} ${y + 6} L ${x + 10} ${y + size - 8} L ${x + size - 4} ${y + size - 8} L ${x + size - 2} ${y + 6}`, {
+                    fill: 'none', stroke: color, strokeWidth: 1.5
+                });
+                svg.appendChild(cartBody);
+                const wheel1 = this.createCircle(x + 11, y + size - 4, 2, { fill: color });
+                const wheel2 = this.createCircle(x + size - 6, y + size - 4, 2, { fill: color });
+                svg.appendChild(wheel1);
+                svg.appendChild(wheel2);
+                break;
+            case 'add':
+                const addLine1 = this.createLine(x + size / 2, y + 4, x + size / 2, y + size - 4, { stroke: color, strokeWidth: 2 });
+                const addLine2 = this.createLine(x + 4, y + size / 2, x + size - 4, y + size / 2, { stroke: color, strokeWidth: 2 });
+                svg.appendChild(addLine1);
+                svg.appendChild(addLine2);
+                break;
+            case 'message':
+                const msgBg = this.createRect(x + 3, y + 5, size - 6, size - 10, {
+                    fill: 'none', stroke: color, strokeWidth: 1.5, rx: 3
+                });
+                svg.appendChild(msgBg);
+                break;
+            case 'comment':
+                const commentBg = this.createRect(x + 3, y + 3, size - 6, size - 8, {
+                    fill: 'none', stroke: color, strokeWidth: 1.5, rx: 3
+                });
+                svg.appendChild(commentBg);
+                break;
+            case 'share':
+                const sharePath = this.createPath(`M ${x + size - 6} ${y + 6} L ${x + 4} ${y + size / 2} L ${x + size - 6} ${y + size - 6}`, {
+                    fill: 'none', stroke: color, strokeWidth: 1.5
+                });
+                svg.appendChild(sharePath);
+                break;
+            case 'bookmark':
+                const bmPath = this.createPath(`M ${x + 6} ${y + 4} L ${x + 6} ${y + size - 4} L ${x + size / 2} ${y + size - 10} L ${x + size - 6} ${y + size - 4} L ${x + size - 6} ${y + 4} Z`, {
+                    fill: 'none', stroke: color, strokeWidth: 1.5
+                });
+                svg.appendChild(bmPath);
+                break;
+            default:
+                // 기본 placeholder 원
+                const defaultIcon = this.createCircle(x + size / 2, y + size / 2, size / 3, {
+                    fill: 'none', stroke: color, strokeWidth: 1.5
+                });
+                svg.appendChild(defaultIcon);
+        }
+    }
+
+    renderWfComponent(svg, element, ctx) {
+        return this.renderWfSectionItem(svg, element, {
+            ...ctx,
+            x: ctx.x + ctx.cfg.padding,
+            width: ctx.width - ctx.cfg.padding * 2
+        });
     }
 
     showError(message) {

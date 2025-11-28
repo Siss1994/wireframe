@@ -352,6 +352,156 @@ const EXAMPLES = {
     해결책 제시: 4: 상담원
     문제 해결: 5: 고객, 상담원`
         }
+    ],
+    wireframe: [
+        {
+            name: '로그인 페이지',
+            description: '기본 로그인 화면 와이어프레임',
+            code: `wireframe 로그인 페이지
+    device mobile
+
+    header
+        logo "MyApp"
+        nav "메뉴"
+    end
+
+    section 로그인 폼
+        text "로그인"
+        input email "이메일 주소"
+        input password "비밀번호"
+        checkbox "로그인 상태 유지"
+        button primary "로그인"
+        link "비밀번호 찾기"
+        divider "또는"
+        button secondary "Google로 로그인"
+        button secondary "Kakao로 로그인"
+    end
+
+    footer
+        link "회원가입"
+        link "고객센터"
+    end`
+        },
+        {
+            name: '대시보드',
+            description: '관리자 대시보드 와이어프레임',
+            code: `wireframe 대시보드
+    device desktop
+
+    header
+        logo "Admin"
+        nav "대시보드" "사용자" "설정"
+        avatar "관리자"
+    end
+
+    sidebar
+        menu "홈" active
+        menu "분석"
+        menu "주문"
+        menu "상품"
+        menu "고객"
+        divider
+        menu "설정"
+    end
+
+    section 통계
+        card "총 매출" "₩12,450,000" "+12%"
+        card "주문수" "324" "+8%"
+        card "방문자" "1,234" "-3%"
+        card "전환율" "3.2%" "+0.5%"
+    end
+
+    section 차트
+        chart bar "월별 매출"
+        chart line "일별 방문자"
+    end
+
+    section 최근 주문
+        table "주문번호" "고객" "금액" "상태"
+    end`
+        },
+        {
+            name: '상품 목록',
+            description: '이커머스 상품 목록 페이지',
+            code: `wireframe 상품 목록
+    device tablet
+
+    header
+        logo "Shop"
+        search "상품 검색..."
+        icon cart
+        icon user
+    end
+
+    section 필터
+        dropdown "카테고리"
+        dropdown "가격대"
+        dropdown "정렬"
+    end
+
+    section 상품 그리드
+        product "상품 1" "₩29,000" star 4.5
+        product "상품 2" "₩39,000" star 4.8
+        product "상품 3" "₩19,000" star 4.2
+        product "상품 4" "₩49,000" star 4.9
+        product "상품 5" "₩25,000" star 4.0
+        product "상품 6" "₩35,000" star 4.7
+    end
+
+    pagination 1 2 3 ... 10
+
+    footer
+        link "이용약관"
+        link "개인정보처리방침"
+        text "© 2024 Shop"
+    end`
+        },
+        {
+            name: '모바일 앱 화면',
+            description: '소셜 미디어 피드 화면',
+            code: `wireframe 피드
+    device mobile
+
+    statusbar
+
+    header
+        logo "Social"
+        icon search
+        icon message
+    end
+
+    section 스토리
+        avatar "내 스토리" add
+        avatar "user1"
+        avatar "user2"
+        avatar "user3"
+    end
+
+    section 피드
+        post
+            avatar "username1"
+            image placeholder
+            icons heart comment share bookmark
+            text "좋아요 128개"
+            text "첫 번째 게시물입니다..."
+        end
+        post
+            avatar "username2"
+            image placeholder
+            icons heart comment share bookmark
+            text "좋아요 256개"
+            text "두 번째 게시물..."
+        end
+    end
+
+    bottomnav
+        icon home active
+        icon search
+        icon add
+        icon heart
+        icon user
+    end`
+        }
     ]
 };
 
@@ -505,6 +655,42 @@ A --> B   %% 연관</code></pre>
         <pre><code>1-2: 부정적 경험 (빨강)
 3: 보통 (노랑)
 4-5: 긍정적 경험 (초록)</code></pre>
+    </div>`,
+
+    wireframe: `<div class="help-section">
+        <h4>기본 구조</h4>
+        <pre><code>wireframe 페이지명
+    device mobile|tablet|desktop
+
+    header ... end
+    section 섹션명 ... end
+    footer ... end</code></pre>
+    </div>
+    <div class="help-section">
+        <h4>UI 컴포넌트</h4>
+        <pre><code>text "텍스트"
+input type "placeholder"
+button primary|secondary "라벨"
+checkbox "라벨"
+dropdown "라벨"
+link "텍스트"
+divider</code></pre>
+    </div>
+    <div class="help-section">
+        <h4>레이아웃</h4>
+        <pre><code>header ... end
+sidebar ... end
+section 이름 ... end
+footer ... end
+card "제목" "값" "변화"
+table "컬럼1" "컬럼2"</code></pre>
+    </div>
+    <div class="help-section">
+        <h4>아이콘/이미지</h4>
+        <pre><code>icon name
+avatar "이름"
+image placeholder
+logo "텍스트"</code></pre>
     </div>`
 };
 
@@ -536,6 +722,9 @@ function initializeElements() {
     elements.examplesList = document.getElementById('examplesList');
     elements.syntaxHelp = document.getElementById('syntaxHelp');
     elements.syntaxHelpContent = document.getElementById('syntaxHelpContent');
+    elements.resizeHandle = document.getElementById('resizeHandle');
+    elements.editorPanel = document.querySelector('.editor-panel');
+    elements.mainContent = document.querySelector('.main-content');
 
     // 렌더러 초기화
     diagramRenderer = new DiagramRenderer('diagramCanvas');
@@ -604,6 +793,82 @@ function initializeEventListeners() {
         if (e.key === 'Escape') {
             elements.examplesSidebar.classList.remove('open');
             elements.syntaxHelp.classList.remove('open');
+        }
+    });
+
+    // 리사이즈 핸들
+    initializeResize();
+}
+
+// 리사이즈 기능
+function initializeResize() {
+    let isResizing = false;
+    let startX = 0;
+    let startWidth = 0;
+
+    elements.resizeHandle.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        startX = e.clientX;
+        startWidth = elements.editorPanel.offsetWidth;
+        elements.resizeHandle.classList.add('dragging');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+
+        const mainWidth = elements.mainContent.offsetWidth;
+        const delta = e.clientX - startX;
+        let newWidth = startWidth + delta;
+
+        // 최소/최대 너비 제한
+        const minWidth = 300;
+        const maxWidth = mainWidth * 0.7;
+
+        newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+
+        elements.editorPanel.style.width = newWidth + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isResizing) {
+            isResizing = false;
+            elements.resizeHandle.classList.remove('dragging');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        }
+    });
+
+    // 터치 지원
+    elements.resizeHandle.addEventListener('touchstart', (e) => {
+        isResizing = true;
+        startX = e.touches[0].clientX;
+        startWidth = elements.editorPanel.offsetWidth;
+        elements.resizeHandle.classList.add('dragging');
+        e.preventDefault();
+    });
+
+    document.addEventListener('touchmove', (e) => {
+        if (!isResizing) return;
+
+        const mainWidth = elements.mainContent.offsetWidth;
+        const delta = e.touches[0].clientX - startX;
+        let newWidth = startWidth + delta;
+
+        const minWidth = 300;
+        const maxWidth = mainWidth * 0.7;
+
+        newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+
+        elements.editorPanel.style.width = newWidth + 'px';
+    });
+
+    document.addEventListener('touchend', () => {
+        if (isResizing) {
+            isResizing = false;
+            elements.resizeHandle.classList.remove('dragging');
         }
     });
 }

@@ -66,8 +66,10 @@ class DiagramParser {
             return this.parseGantt(lines);
         } else if (firstLine.startsWith('journey')) {
             return this.parseJourney(lines);
+        } else if (firstLine.startsWith('wireframe')) {
+            return this.parseWireframe(lines);
         } else {
-            throw new Error(`지원하지 않는 다이어그램 타입입니다. flowchart, sequenceDiagram, stateDiagram, mindmap, pie, classDiagram, erDiagram, gantt, journey 중 하나를 사용하세요.`);
+            throw new Error(`지원하지 않는 다이어그램 타입입니다. flowchart, sequenceDiagram, stateDiagram, mindmap, pie, classDiagram, erDiagram, gantt, journey, wireframe 중 하나를 사용하세요.`);
         }
     }
 
@@ -732,6 +734,253 @@ class DiagramParser {
             title: this.journeyTitle,
             sections: this.journeySections
         };
+    }
+
+    // ===== Wireframe Parser =====
+    parseWireframe(lines) {
+        this.diagramType = 'wireframe';
+
+        // 첫 줄에서 페이지 이름 추출
+        const firstLine = lines[0];
+        const titleMatch = firstLine.match(/^wireframe\s+(.+)$/i);
+        const pageTitle = titleMatch ? titleMatch[1].trim() : 'Wireframe';
+
+        let device = 'mobile'; // 기본 디바이스
+        const elements = [];
+        let currentBlock = null;
+        let blockStack = [];
+
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+
+            // device 설정
+            const deviceMatch = line.match(/^device\s+(mobile|tablet|desktop)$/i);
+            if (deviceMatch) {
+                device = deviceMatch[1].toLowerCase();
+                continue;
+            }
+
+            // statusbar (모바일)
+            if (line === 'statusbar') {
+                elements.push({ type: 'statusbar' });
+                continue;
+            }
+
+            // bottomnav (모바일 하단 네비게이션)
+            if (line === 'bottomnav') {
+                currentBlock = { type: 'bottomnav', items: [] };
+                blockStack.push(currentBlock);
+                continue;
+            }
+
+            // header 블록 시작
+            if (line === 'header') {
+                currentBlock = { type: 'header', items: [] };
+                blockStack.push(currentBlock);
+                continue;
+            }
+
+            // footer 블록 시작
+            if (line === 'footer') {
+                currentBlock = { type: 'footer', items: [] };
+                blockStack.push(currentBlock);
+                continue;
+            }
+
+            // sidebar 블록 시작
+            if (line === 'sidebar') {
+                currentBlock = { type: 'sidebar', items: [] };
+                blockStack.push(currentBlock);
+                continue;
+            }
+
+            // section 블록 시작
+            const sectionMatch = line.match(/^section\s+(.+)$/i);
+            if (sectionMatch) {
+                currentBlock = { type: 'section', title: sectionMatch[1], items: [] };
+                blockStack.push(currentBlock);
+                continue;
+            }
+
+            // post 블록 시작 (소셜 피드용)
+            if (line === 'post') {
+                const postBlock = { type: 'post', items: [] };
+                if (currentBlock && currentBlock.items) {
+                    currentBlock.items.push(postBlock);
+                }
+                blockStack.push(postBlock);
+                currentBlock = postBlock;
+                continue;
+            }
+
+            // end 블록 종료
+            if (line === 'end') {
+                if (blockStack.length > 0) {
+                    const completedBlock = blockStack.pop();
+                    if (blockStack.length === 0) {
+                        elements.push(completedBlock);
+                        currentBlock = null;
+                    } else {
+                        currentBlock = blockStack[blockStack.length - 1];
+                    }
+                }
+                continue;
+            }
+
+            // 컴포넌트 파싱
+            const component = this.parseWireframeComponent(line);
+            if (component) {
+                if (currentBlock && currentBlock.items) {
+                    currentBlock.items.push(component);
+                } else {
+                    elements.push(component);
+                }
+            }
+        }
+
+        // 열린 블록 닫기
+        while (blockStack.length > 0) {
+            const block = blockStack.pop();
+            if (blockStack.length === 0) {
+                elements.push(block);
+            }
+        }
+
+        return {
+            type: 'wireframe',
+            title: pageTitle,
+            device,
+            elements
+        };
+    }
+
+    parseWireframeComponent(line) {
+        // logo "텍스트"
+        let match = line.match(/^logo\s+"([^"]+)"$/i);
+        if (match) {
+            return { type: 'logo', text: match[1] };
+        }
+
+        // nav "item1" "item2" ...
+        match = line.match(/^nav\s+(.+)$/i);
+        if (match) {
+            const items = match[1].match(/"([^"]+)"/g)?.map(s => s.replace(/"/g, '')) || [];
+            return { type: 'nav', items };
+        }
+
+        // avatar "이름" [add]
+        match = line.match(/^avatar\s+"([^"]+)"(?:\s+(add))?$/i);
+        if (match) {
+            return { type: 'avatar', name: match[1], add: !!match[2] };
+        }
+
+        // text "내용"
+        match = line.match(/^text\s+"([^"]+)"$/i);
+        if (match) {
+            return { type: 'text', content: match[1] };
+        }
+
+        // input type "placeholder"
+        match = line.match(/^input\s+(\w+)\s+"([^"]+)"$/i);
+        if (match) {
+            return { type: 'input', inputType: match[1], placeholder: match[2] };
+        }
+
+        // button primary|secondary "라벨"
+        match = line.match(/^button\s+(primary|secondary)\s+"([^"]+)"$/i);
+        if (match) {
+            return { type: 'button', variant: match[1], label: match[2] };
+        }
+
+        // checkbox "라벨"
+        match = line.match(/^checkbox\s+"([^"]+)"$/i);
+        if (match) {
+            return { type: 'checkbox', label: match[1] };
+        }
+
+        // dropdown "라벨"
+        match = line.match(/^dropdown\s+"([^"]+)"$/i);
+        if (match) {
+            return { type: 'dropdown', label: match[1] };
+        }
+
+        // link "텍스트"
+        match = line.match(/^link\s+"([^"]+)"$/i);
+        if (match) {
+            return { type: 'link', text: match[1] };
+        }
+
+        // divider or divider "텍스트"
+        match = line.match(/^divider(?:\s+"([^"]+)")?$/i);
+        if (match) {
+            return { type: 'divider', text: match[1] || null };
+        }
+
+        // search "placeholder"
+        match = line.match(/^search\s+"([^"]+)"$/i);
+        if (match) {
+            return { type: 'search', placeholder: match[1] };
+        }
+
+        // icon name [active]
+        match = line.match(/^icon\s+(\w+)(?:\s+(active))?$/i);
+        if (match) {
+            return { type: 'icon', name: match[1], active: !!match[2] };
+        }
+
+        // icons name1 name2 ...
+        match = line.match(/^icons\s+(.+)$/i);
+        if (match) {
+            const icons = match[1].split(/\s+/);
+            return { type: 'icons', names: icons };
+        }
+
+        // menu "라벨" [active]
+        match = line.match(/^menu\s+"([^"]+)"(?:\s+(active))?$/i);
+        if (match) {
+            return { type: 'menu', label: match[1], active: !!match[2] };
+        }
+
+        // card "제목" "값" "변화"
+        match = line.match(/^card\s+"([^"]+)"\s+"([^"]+)"(?:\s+"([^"]+)")?$/i);
+        if (match) {
+            return { type: 'card', title: match[1], value: match[2], change: match[3] || null };
+        }
+
+        // chart type "제목"
+        match = line.match(/^chart\s+(bar|line|pie)\s+"([^"]+)"$/i);
+        if (match) {
+            return { type: 'chart', chartType: match[1], title: match[2] };
+        }
+
+        // table "컬럼1" "컬럼2" ...
+        match = line.match(/^table\s+(.+)$/i);
+        if (match) {
+            const columns = match[1].match(/"([^"]+)"/g)?.map(s => s.replace(/"/g, '')) || [];
+            return { type: 'table', columns };
+        }
+
+        // product "이름" "가격" star rating
+        match = line.match(/^product\s+"([^"]+)"\s+"([^"]+)"(?:\s+star\s+(\d+(?:\.\d+)?))?$/i);
+        if (match) {
+            return { type: 'product', name: match[1], price: match[2], rating: match[3] ? parseFloat(match[3]) : null };
+        }
+
+        // image placeholder
+        match = line.match(/^image\s+(placeholder)$/i);
+        if (match) {
+            return { type: 'image', placeholder: true };
+        }
+
+        // pagination 1 2 3 ... 10
+        match = line.match(/^pagination\s+(.+)$/i);
+        if (match) {
+            const pages = match[1].split(/\s+/);
+            return { type: 'pagination', pages };
+        }
+
+        return null;
     }
 
     validate(code) {
